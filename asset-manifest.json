@@ -1,19 +1,19 @@
 {
   "files": {
-    "main.css": "/beerja/static/css/main.8d3cf06f.chunk.css",
-    "main.js": "/beerja/static/js/main.522de836.chunk.js",
-    "main.js.map": "/beerja/static/js/main.522de836.chunk.js.map",
-    "runtime-main.js": "/beerja/static/js/runtime-main.98badc10.js",
-    "runtime-main.js.map": "/beerja/static/js/runtime-main.98badc10.js.map",
+    "main.css": "/beerja/static/css/main.f73bba34.chunk.css",
+    "main.js": "/beerja/static/js/main.8064cf3c.chunk.js",
+    "main.js.map": "/beerja/static/js/main.8064cf3c.chunk.js.map",
+    "runtime-main.js": "/beerja/static/js/runtime-main.35c773b0.js",
+    "runtime-main.js.map": "/beerja/static/js/runtime-main.35c773b0.js.map",
     "static/css/2.28389d10.chunk.css": "/beerja/static/css/2.28389d10.chunk.css",
-    "static/js/2.c373e73a.chunk.js": "/beerja/static/js/2.c373e73a.chunk.js",
-    "static/js/2.c373e73a.chunk.js.map": "/beerja/static/js/2.c373e73a.chunk.js.map",
-    "static/js/3.aa6fdd61.chunk.js": "/beerja/static/js/3.aa6fdd61.chunk.js",
-    "static/js/3.aa6fdd61.chunk.js.map": "/beerja/static/js/3.aa6fdd61.chunk.js.map",
+    "static/js/2.b0d8095a.chunk.js": "/beerja/static/js/2.b0d8095a.chunk.js",
+    "static/js/2.b0d8095a.chunk.js.map": "/beerja/static/js/2.b0d8095a.chunk.js.map",
+    "static/js/3.eccf5b8b.chunk.js": "/beerja/static/js/3.eccf5b8b.chunk.js",
+    "static/js/3.eccf5b8b.chunk.js.map": "/beerja/static/js/3.eccf5b8b.chunk.js.map",
     "index.html": "/beerja/index.html",
     "static/css/2.28389d10.chunk.css.map": "/beerja/static/css/2.28389d10.chunk.css.map",
-    "static/css/main.8d3cf06f.chunk.css.map": "/beerja/static/css/main.8d3cf06f.chunk.css.map",
-    "static/js/2.c373e73a.chunk.js.LICENSE.txt": "/beerja/static/js/2.c373e73a.chunk.js.LICENSE.txt",
+    "static/css/main.f73bba34.chunk.css.map": "/beerja/static/css/main.f73bba34.chunk.css.map",
+    "static/js/2.b0d8095a.chunk.js.LICENSE.txt": "/beerja/static/js/2.b0d8095a.chunk.js.LICENSE.txt",
     "static/media/CH.svg": "/beerja/static/media/CH.8eb12932.svg",
     "static/media/EU.svg": "/beerja/static/media/EU.cc1cffe9.svg",
     "static/media/GB.svg": "/beerja/static/media/GB.3de1330d.svg",
@@ -186,10 +186,10 @@
     "static/media/zscaler--big.svg": "/beerja/static/media/zscaler--big.273b3f05.svg"
   },
   "entrypoints": [
-    "static/js/runtime-main.98badc10.js",
+    "static/js/runtime-main.35c773b0.js",
     "static/css/2.28389d10.chunk.css",
-    "static/js/2.c373e73a.chunk.js",
-    "static/css/main.8d3cf06f.chunk.css",
-    "static/js/main.522de836.chunk.js"
+    "static/js/2.b0d8095a.chunk.js",
+    "static/css/main.f73bba34.chunk.css",
+    "static/js/main.8064cf3c.chunk.js"
   ]
 }
