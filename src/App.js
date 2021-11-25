@@ -13,128 +13,456 @@ import {
     TabbarItem,
     Group,
     CardScroll,
-    Header, Avatar, withPlatform, Placeholder, Button, FixedLayout, HorizontalCell
+    Header,
+    withPlatform,
+    Placeholder,
+    Button,
+    FixedLayout,
+    Spinner,
+    Snackbar,
+    Avatar
 } from "@vkontakte/vkui";
-import {Icon24CupOutline, Icon24SartOutline, Icon24WorkOutline, Icon56GestureOutline} from '@vkontakte/icons';
+import {
+    Icon16Done, Icon16ErrorCircleFill, Icon20CheckCircleFillGreen,
+    Icon24CupOutline,
+    Icon24SartOutline,
+    Icon24WorkOutline,
+    Icon56GestureOutline
+} from '@vkontakte/icons';
 import BalanceCards from "./Components/BalanceCards";
 import fs from "./Functions/Firebase.js";
 import StockCard from "./Components/StockCard";
-import StocksData from "./Functions/StocksData.js";
+import StocksData from "./Functions/StocksData";
 import Modal from "./Components/Modal";
+import StockCardHorizontal from "./Components/StockCardHorizontal";
+import bridge from "@vkontakte/vk-bridge";
+import CurrenciesGroup from "./Components/CurrenciesGroup";
+import OperationCards from "./Components/OperationCards";
+import MarginCards from "./Components/MarginCards";
+import CommoditiesGroup from "./Components/CommoditiesGroup";
+import ErrorBlock from "./Components/ErrorBlock";
+
+const unique = (value, index, self) => {
+    return self.indexOf(value) === index;
+}
 
 class App extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
             activePanel: 'portfolio',
-            userPortfolio: [],
-            stockPrices: [],
-            avgPrices: [],
-            sharesCount: [],
-            currencies: {
-                rub: 1,
-                usd: 72.44,
-                eur: 81.12
-            },
+            activeStock: {ticker: ''},
+            portfolio: [],
+            cash: [],
+            currencies: {},
             stocksMarket: [],
-            modal: null
+            modal: null,
+            loading: true,
+            scheme: 'bright_light',
+            stocksAvailable: [],
+            stocksAvailableNextWeek: [],
+            AlpacaConnected: false,
+            snackBar: '',
+            deals: [],
+            marketOpen: false,
+            lastBonusTaken: Infinity,
+            marginable: false,
+            commoditiesAvailable: {},
+            commodities: {},
+            errors: [],
+            bonusLoading: false
         }
         this.api_key = 'CKB1ZOZN09CF26RO6LPJ';
         this.api_secret = 'cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao';
         this.getPrice = this.getPrice.bind(this);
-        this.getUserStocks = this.getUserStocks.bind(this);
         this.setActiveModal = this.setActiveModal.bind(this);
+        this.userDataUpdatesSubscribe = this.userDataUpdatesSubscribe.bind(this);
+        this.stocksSubscribe = this.stocksSubscribe.bind(this);
+        this.dealComplete = this.dealComplete.bind(this);
+        this.marketOpen = this.marketOpen.bind(this);
+        this.userValue = this.userValue.bind(this);
+        this.takeDailyBonus = this.takeDailyBonus.bind(this);
+        this.changeMarginStatus = this.changeMarginStatus.bind(this);
+        this.openDeals = this.openDeals.bind(this);
+        this.getCommodities = this.getCommodities.bind(this);
     }
     async componentDidMount() {
-        await this.getUserStocks().then(e => {
-            this.portfolioInit(e).then(a => {
-                this.setState(a);
-            });
+        await this.connectAlpacaWSS();
+        await this.getCurrencyData();
+        await this.userDataUpdatesSubscribe();
+        await this.stocksSubscribe();
+        await this.getCommodities();
+        this.userValue();
+        await bridge.subscribe(e => {
+            if(e.detail.type === 'VKWebAppUpdateConfig'){
+                this.setState({
+                    scheme: e.detail.data.scheme
+                });
+            }
         });
-        const possible = ['ADBE', 'GOOG', 'AXP', 'AMZN', 'BLK', 'AAPL', 'KO', 'GRMN', 'INTC', 'MSFT'];
-        for(const v of possible){
-            await this.pushStock(v);
-        }
-        this.connectAlpacaWSS();
-    }
-    async getUserStocks(){
-        let a;
-        await fs.collection('users').doc('1').get().then(e => a=e.data().portfolio);
-        return await Promise.resolve(a);
-    }
+        bridge.send('VKWebAppInit').then(() =>{
 
+        });
+        this.marketOpen();
+    }
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if(this.state.AlpacaConnected){
+            let a = [...this.state.portfolio, ...this.state.stocksMarket];
+            let c = [...prevState.portfolio, ...prevState.stocksMarket];
+            let b = [];
+            let d = [];
+            for(const v of a){
+                b.push(v.ticker);
+            }
+            for(const v of c){
+                d.push(v.ticker);
+            }
+            if(b.filter(unique).length !== d.filter(unique).length){
+                this.AlpacaSend('subscribe');
+            }
+        }
+    }
+    stocksSubscribe(){
+        fs.collection('users').doc('-1').onSnapshot(
+            async e => {
+                this.pushStock(e.data().thisweek).then(v => {
+                    this.setState({
+                        stocksMarket: v
+                    })
+                });
+                this.setState({
+                    stocksAvailableNextWeek: e.data().nextweek,
+                    commoditiesAvailableNow: e.data().commodities
+                });
+            }
+        );
+    }
+    userValue(){
+        const leverage = 5;
+        const commission = 0.0005;
+        let c = this.state.currencies;
+        if(!c.chf){
+            return {}
+        }
+        let CHFUSD = c.chf.val / c.usd.val;
+        let GBPUSD = c.gbp.val / c.usd.val;
+        let EURUSD = c.eur.val / c.usd.val;
+        let RUBUSD = c.rub.val / c.usd.val;
+        let rates = {
+            usd: 1,
+            chf: CHFUSD,
+            gbp: GBPUSD,
+            eur: EURUSD,
+            rub: RUBUSD
+        }
+        let usdValue = 0;
+        let usdAbs = 0;
+        this.state.portfolio.forEach(v => {
+            usdValue += v.price * v.count;
+            if(v.count > 0){
+                usdAbs += Math.abs(v.price * v.count);
+            }
+        });
+        for (const [k, v] of Object.entries(this.state.cash)) {
+            usdValue += v.count * rates[k];
+            if(v.count > 0) {
+                usdAbs += Math.abs(v.count * rates[k]);
+            }
+        }
+        for (const [, v] of Object.entries(this.state.commodities)) {
+            usdValue += v.count * v.avgPrice;
+            if(v.count > 0) {
+                usdAbs += Math.abs(v.count * v.avgPrice);
+            }
+        }
+        let eurValue = usdValue / EURUSD;
+        let rubValue = usdValue / RUBUSD;
+        let naked = (usdAbs - usdValue) / RUBUSD;
+        // let avail = rubValue * leverage - naked;
+        let avail = (usdValue * leverage - usdAbs) / RUBUSD;
+        if(!naked){
+            avail += rubValue;
+        }
+        return {
+            usdValue: usdValue,
+            eurValue: eurValue,
+            rubValue: rubValue,
+            rubValueNaked: naked,
+            rubValueAvailable: avail > 0 ? avail : 0,
+            leverage: leverage,
+            commission: commission
+        }
+    }
+    async getCommodities(){
+        let a;
+        let b;
+        let c;
+        await fs.collection('users').doc('-2').get().then(async e => {
+            if(new Date().getTime() - e.data().commodities.updated*1000 > 1000*8*60*60){
+                let symbols = 'COFFEE%2CWHEAT%2CSUGAR%2CCORN%2CSOYBEAN%2CRICE%2CALU%2CBRENTOIL%2CLCO%2CXCU%2CCOTTON%2CXAU%2CIRD%2CNI%2CXPD%2CXPT%2CXRH%2CXAG%2CTIN%2CWTIOIL%2CZNC';
+                let access_key = 'k75br6f333zn5t2d66yuw3hfe12i9n6dlnxheqqyvmrt73t9r52w5qtek973';
+                await fetch('https://commodities-api.com/api/latest?access_key='+access_key+'&base=USD&symbols='+symbols).then(async e => {
+                    a = await Promise.resolve(e.json());
+                });
+                let nd = new Date((a.data.timestamp - 24*60*60)*1000);
+                nd = nd.getFullYear()+'-'+(nd.getMonth()+1)+'-'+nd.getDate();
+                await fetch('https://commodities-api.com/api/'+nd+'?access_key='+access_key+'&base=USD&symbols='+symbols).then(async e => {
+                    c = await Promise.resolve(e.json());
+                });
+                b = {
+                    updated: await a.data.timestamp,
+                    rates: await a.data.rates,
+                    ratesBefore: await c.data.rates
+                }
+                await fs.collection('users').doc('-2').update({
+                    commodities: b
+                })
+            }
+            else{
+                b = {
+                    rates: e.data().commodities.rates,
+                    ratesBefore: e.data().commodities.ratesBefore
+                }
+            }
+        })
+        await this.setState({commoditiesAvailable: b});
+    }
+    async getCurrencyData(){
+        let a;
+        await fetch('https://www.cbr-xml-daily.ru/daily_json.js').then(async e => {
+            a = await Promise.resolve(e.json());
+            this.setState({currencies: {
+                    rub: {val: 1, ticker: 'RUBRUB', valPrev: 1},
+                    usd: {val: parseFloat(a.Valute.USD.Value), ticker: 'RUBUSD', valPrev: parseFloat(a.Valute.USD.Previous)},
+                    eur: {val: parseFloat(a.Valute.EUR.Value), ticker: 'RUBEUR', valPrev: parseFloat(a.Valute.EUR.Previous)},
+                    chf: {val: parseFloat(a.Valute.CHF.Value), ticker: 'RUBCHF', valPrev: parseFloat(a.Valute.CHF.Previous)},
+                    gbp: {val: parseFloat(a.Valute.GBP.Value), ticker: 'RUBGBP', valPrev: parseFloat(a.Valute.GBP.Previous)}
+                }});
+        });
+        //return await Promise.resolve(a);
+    }
+    userDataUpdatesSubscribe(){
+        fs.collection('users').doc('1').onSnapshot(
+            e => {
+                this.portfolioInit(e.data().portfolio).then(v =>
+                    this.setState({
+                        portfolio: v,
+                        cash: e.data().currencies,
+                        deals: e.data().deals,
+                        loading: false,
+                        lastBonusTaken: e.data().lastBonusTaken,
+                        marginable: e.data().marginable,
+                        commodities: e.data().commodities
+                    })
+                );
+            }
+        );
+    }
     connectAlpacaWSS(){
-        const ws = new WebSocket('wss://stream.data.sandbox.alpaca.markets/v2/iex');
-        ws.onopen = () => {
-          ws.send('{"action":"auth","key":"CKB1ZOZN09CF26RO6LPJ","secret":"cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao"}')
+        this.ws = new WebSocket('wss://stream.data.sandbox.alpaca.markets/v2/iex');
+        this.ws.onopen = () => {
+            this.AlpacaSend('auth');
         };
-        ws.onmessage = (e) => {
+        this.ws.onmessage = (e) => {
           let a = JSON.parse(e.data)[0];
           if(a.msg === 'authenticated'){
-            ws.send('{"action":"subscribe","trades":["AAPL","AMD"]}');
+              this.setState({AlpacaConnected: true});
           }
           if(a.T === 't'){
               this.stockPriceUpdate(a.S, a.p);
           }
+          if(a.T === 'error'){
+              this.setState({errors: [...this.state.errors, a.code]});
+          }
         }
     }
-
-    stockPriceUpdate(t,v,c = true) {
-        let a = this.state.avgPrices;
-        if(c){
-            a = this.state.stockPrices;
+    AlpacaSend(method){
+        if(method === 'auth'){
+            this.ws.send('{"action":"auth","key":"CKB1ZOZN09CF26RO6LPJ","secret":"cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao"}');
+            return;
         }
-        let i = this.state.userPortfolio.indexOf(t);
-        a[i] = v;
-        this.setState(a ? {stockPrices: a} : {avgPrices: a});
-    }
-
-    async portfolioInit(stocks){
-        let a = [];
-        let b = [];
-        let c = [];
-        let d = [];
-        for (const v of stocks) {
-            a.push(v.ticker);
-            b.push(v.avgPrice);
-            c.push(v.count);
-            await this.getPrice(v.ticker).then(e => d.push(e.trade.p));
+        if(method === 'subscribe'){
+            let a = [...this.state.portfolio, ...this.state.stocksMarket];
+            let b = [];
+            for(const v of a){
+                b.push(v.ticker);
+            }
+            if(b.length === 0){
+                return;
+            }
+            this.ws.send(JSON.stringify({action:"subscribe",trades:b.filter(unique)}));
+            // return;
         }
-        return {
-             userPortfolio: a,
-             avgPrices: b,
-             sharesCount: c,
-             stockPrices: d
-         };
     }
-
-    async pushStock(t){
-        let a = this.state.stocksMarket;
-        for(const v of a){
-            if(v.ticker === t){
-                return false;
+    takeDailyBonus(){
+        const bonus = 10000;
+        if(new Date().getDate() === new Date(this.state.lastBonusTaken).getDate()){
+            this.setState({
+                snackBar: <Snackbar
+                    onClose={() => this.setState({snackBar: null})}
+                    before={<Icon16ErrorCircleFill width={24} height={24} />}
+                >
+                    Бонус можно будет получить завтра
+                </Snackbar>
+            })
+            return;
+        }
+        this.setState({bonusLoading: true})
+        bridge.send("VKWebAppShowNativeAds", {ad_format:"reward"})
+            .then(data => {
+                if(!data){
+                    this.setState({
+                        snackBar: <Snackbar
+                            onClose={() => this.setState({snackBar: null})}
+                            before={<Icon16ErrorCircleFill width={24} height={24} />}
+                        >
+                            Посмотрите рекламу до конца
+                        </Snackbar>
+                    })
+                }
+                let a = Object.assign(this.state.cash);
+                a.rub.count += bonus;
+                let b = [...this.state.deals];
+                b.push({
+                    action: 'bonus',
+                    count: bonus,
+                    date: new Date()
+                });
+                fs.collection('users').doc('1').update({
+                    lastBonusTaken: new Date().getTime(),
+                    currencies: a,
+                    deals: b
+                }).then(() => this.setState({
+                    snackBar: <Snackbar
+                        onClose={() => this.setState({snackBar: null})}
+                        before={<Icon20CheckCircleFillGreen width={24} height={24} />}
+                    >
+                        На счет зачислено 10 000 ₽
+                    </Snackbar>,
+                    bonusLoading: false
+                }))
+            })
+    }
+    openDeals(){
+        this.setActiveModal('history', null);
+    }
+    stockPriceUpdate(ticker, price){
+        let a = this.state.portfolio;
+        if(this.state.modal === 'stock'){
+            if(this.state.activeStock.ticker === ticker){
+                let c = this.state.activeStock;
+                c.price = price;
+                this.setState({activeStock: c});
             }
         }
-        this.getPrice(t).then(async e => {
-            let s = await this.getPrice(t, e.trade.t);
-            // for(const x of s.quotes){
-            //     if(x.ap > 0){
-            //         s = x.ap;
-            //         break;
-            //     }
-            // }
-            a.push({
-                ticker: t,
-                name: StocksData[t].name,
-                price: e.trade.p,
-                priceBefore: s.trades[0].p
-            });
-        })
-        this.setState({stocksMarket: a});
-        console.log(this.state);
+        let now = new Date().getTime();
+        const delay = 5000;
+        for(let i = 0; i < a.length; i++){
+            if(a[i].ticker === ticker){
+                if(now - a[i].updated < delay){
+                    return;
+                }
+                a[i].price = price;
+                a[i].updated = now;
+                this.setState({
+                    portfolio: a
+                });
+                if(typeof(this.state.stocksMarket.find(v => v.ticker === ticker)) === 'undefined'){
+                    return;
+                }
+            }
+        }
+        let b = this.state.stocksMarket;
+        for(let i = 0; i < b.length; i++){
+            if(b[i].ticker === ticker){
+                if(now - b[i].updated < delay){
+                    return;
+                }
+                b[i].price = price;
+                b[i].updated = now;
+                this.setState({
+                    stocksMarket: b
+                });
+                return;
+            }
+        }
     }
-
-
+    async portfolioInit(stocks){
+        let a = [];
+        let n = this.state.portfolio;
+        for (const v of stocks) {
+            let i;
+            let t = n.find(x => x.ticker === v.ticker);
+            if(!t){
+                await this.getPrice(v.ticker).then(e => {
+                    i = e.trade.p
+                });
+            }
+            else{
+                i = t.price
+            }
+            a.push({
+                ticker: v.ticker,
+                name: StocksData[v.ticker].name,
+                price: await i,
+                avgPrice: v.avgPrice,
+                count: v.count,
+                updated: new Date().getTime()
+            });
+        }
+        return a;
+    }
+    async pushStock(t){
+        let a = [];
+        let n = this.state.stocksMarket;
+        for(const v of t){
+            let t = n.find(x => x.ticker === v);
+            let i;
+            let j;
+            if(!t){
+                await this.getPrice(v).then(e => {
+                    i = e.trade;
+                })
+                j = await this.getPrice(v, await i.t);
+            }
+            else{
+                i = {p: t.price};
+                j = {trades: [{p: t.priceBefore}]}
+            }
+            a.push({
+                ticker: v,
+                name: StocksData[v].name,
+                price: await i.p,
+                priceBefore: await j.trades[0].p,
+                updated: new Date().getTime()
+            });
+        }
+        return a;
+    }
+    marketOpen(){
+        setInterval(() => {
+            let now = new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000 - 1000 * 5 * 60 * 60);
+            let open = new Date(now.getTime());
+            let close = new Date(now.getTime());
+            open.setHours(3);
+            open.setMinutes(30);
+            open.setSeconds(0);
+            close.setHours(20);
+            close.setMinutes(0);
+            close.setSeconds(0);
+            if(now.getTime() >= open.getTime() && now.getTime() <= close.getTime()){
+                if(!this.state.isMarketOpen){
+                    this.setState({isMarketOpen: true});
+                }
+            }
+            else{
+                if(this.state.isMarketOpen){
+                    this.setState({isMarketOpen: false});
+                }
+                // this.setState({isMarketOpen: true});
+            }
+        }, 5000)
+    }
     async getPrice(ticker, date=null){
         let a;
         let u = 'https://data.sandbox.alpaca.markets/v2/stocks/'+ticker+'/trades/latest';
@@ -142,7 +470,7 @@ class App extends React.Component{
             u = 'https://data.sandbox.alpaca.markets/v2/stocks/'+ticker+'/trades?limit=10&start='+(new Date(Date.parse(date) - 1000*24*60*60).toISOString())
         }
         await fetch(
-            u,//?start='+(new Date(Date.now() - 1000*15*60).toISOString()),
+            u,
             {
                 method: 'GET',
                 mode: 'cors',
@@ -151,78 +479,179 @@ class App extends React.Component{
                 }
             }
         ).catch(() => {}).then(
-             (e) => {
-                a = e.json();
+             async e => {
+                a = await e.json();
             }
         )
         return await Promise.resolve(a);
     }
-
     setActivePanel(panel){
         this.setState({activePanel: panel});
     }
     setActiveModal(modal, data){
-        this.setState({activeModal: modal, activeTicker: data});
+        this.setState({activeModal: modal, activeStock: data});
+    }
+    dealComplete(type, count, price, ticker){
+        this.setState({snackBar:
+                <Snackbar
+                    onClose={() => this.setState({ snackBar: null })}
+                    before={<Avatar size={24} style={{ background: 'var(--accent)' }}><Icon16Done fill="#fff" width={14} height={14} /></Avatar>}
+                >
+                    {`${type === 'buy' ? `Покупка` : `Продажа`} ${ticker} ${count} шт. по цене ${price}`}
+                </Snackbar>
+        });
+    }
+    changeMarginStatus(){
+        if(this.userValue().rubValueNaked > 0){
+            this.setState({
+                snackBar: <Snackbar
+                    onClose={() => this.setState({snackBar: null})}
+                    before={<Icon16ErrorCircleFill width={24} height={24} />}
+                >
+                    Сначала закройте непокрытые позиции
+                </Snackbar>
+            })
+            return
+        }
+        fs.collection('users').doc('1').update({
+            marginable: !this.state.marginable
+        });
     }
     render() {
         const {platform} = this.props;
-        return <ConfigProvider platform={platform} scheme={"bright_light"}>
+        return <ConfigProvider platform={platform} scheme={this.state.scheme}>
             <AdaptivityProvider>
                 <AppRoot>
                     <SplitLayout modal={
-                            <Modal v={this.state.activeModal} s={this.setActiveModal} t={this.state.activeTicker}/>
+                        <Modal
+                            v={this.state.activeModal}
+                            s={this.setActiveModal}
+                            t={this.state.activeStock}
+                            c={this.state.cash}
+                            p={this.state.portfolio}
+                            d={this.dealComplete}
+                            q={this.state.currencies}
+                            m={this.state.isMarketOpen}
+                            u={this.userValue()}
+                            e={this.state.marginable}
+                            h={this.state.deals}
+                            g={this.state.commodities}
+                            scheme={this.state.scheme}
+                        />
                     }>
                         <View activePanel={this.state.activePanel}>
                             <Panel id={"portfolio"}>
-                                <BalanceCards c={this.state.currencies}/>
+                                <BalanceCards
+                                    exchangeRates={this.state.currencies}
+                                    portfolio={this.state.portfolio}
+                                    cash={this.state.cash}
+                                    userValue={this.userValue()}
+                                />
+                                <ErrorBlock e={this.state.errors}/>
+                                <MarginCards u={this.userValue()} m={this.changeMarginStatus} e={this.state.marginable}/>
+                                <OperationCards
+                                    od={this.openDeals}
+                                    l={this.state.bonusLoading}
+                                    tdb={this.takeDailyBonus}
+                                    b={this.state.lastBonusTaken}/>
                                 <Group
-                                    header={<Header mode={"secondary"}>Бумаги</Header>}
+                                    header={<Header mode={"secondary"}>Акции</Header>}
                                 >
-                                    {this.state.stockPrices.length > 0 ?
-                                        this.state.userPortfolio.map((v,i) => {
-                                            let a = this.state.avgPrices[i];
-                                            let b = this.state.sharesCount[i];
-                                            let c = this.state.stockPrices[i];
+                                    {!this.state.loading && this.state.portfolio.length > 0 ?
+                                        this.state.portfolio.map((v) => {
                                         return (
-                                            <StockCard key={c+v} a={a} b={b} c={c} v={v} p={true} s={this.setActiveModal}/>
+                                            <StockCard
+                                                key={v.price+v.ticker}
+                                                avgPrice={v.avgPrice}
+                                                count={v.count}
+                                                price={v.price}
+                                                ticker={v.ticker}
+                                                portfolio={true}
+                                                setActiveModal={this.setActiveModal}
+                                                sign={'$'}
+                                                measure={'шт.'}
+                                            />
                                         )
                                     }) :
                                         <Placeholder
-                                            icon={<Icon56GestureOutline/>}
-                                            header={<Header>Здесь пока пусто</Header>}
-                                            action={<Button onClick={() => this.setActivePanel("quotes")} size={"m"}>К покупкам</Button>}
+                                            icon={!this.state.loading ? <Icon56GestureOutline/> : <Spinner size={"large"}/>}
+                                            header={!this.state.loading ? <Header>Здесь пока пусто</Header> : ''}
+                                            action={!this.state.loading ? <Button onClick={() => this.setActivePanel("quotes")} size={"m"}>К покупкам</Button> : ''}
                                         />
                                     }
                                 </Group>
+                                <Group header={<Header mode={'secondary'}>Валюты</Header>}>
+                                    <CurrenciesGroup s={this.setActiveModal} cash={this.state.cash} rates={this.state.currencies} p={true}/>
+                                </Group>
+                                <Group header={<Header mode={'secondary'}>Товары</Header>}>
+                                    <CommoditiesGroup
+                                        s={this.setActiveModal}
+                                        commodities={this.state.commoditiesAvailable}
+                                        now={this.state.commoditiesAvailableNow}
+                                        portfolio={this.state.commodities}
+                                        p={true}/>
+                                </Group>
+                                <div style={{height: 48}}/>
                             </Panel>
                             <Panel id={"quotes"}>
+                                <Group header={<Header mode={'secondary'}>Валюты</Header>}>
+                                    <CurrenciesGroup s={this.setActiveModal} cash={this.state.cash} rates={this.state.currencies} p={false}/>
+                                </Group>
                                 <Group
-                                    header={<Header mode={"secondary"}>Доступно</Header>}
+                                    header={<Header mode={"secondary"}>Акции</Header>}
                                 >
                                     {
-                                        this.state.stocksMarket.map((v,i) => {
-                                            return <StockCard key={v.price+v.ticker} a={v.priceBefore} b={0} c={v.price} v={v.ticker} p={false}/>
-                                        })
+                                        this.state.stocksMarket.length > 0 ? this.state.stocksMarket.map((v) => {
+                                            let count = this.state.portfolio.find(o => o.ticker === v.ticker);
+                                            if(typeof(count) !== 'undefined'){
+                                                count = count.count;
+                                            }
+                                            else{
+                                                count = 0;
+                                            }
+                                            return <StockCard
+                                                key={v.price+v.ticker}
+                                                avgPrice={v.priceBefore}
+                                                count={count}
+                                                price={v.price}
+                                                ticker={v.ticker}
+                                                portfolio={false}
+                                                setActiveModal={this.setActiveModal}
+                                                sign={'$'}
+                                                measure={null}
+                                            />
+                                        }) : <Placeholder
+                                            icon={<Spinner size={"large"}/>}
+                                            header={<Header>Загружаем</Header>}
+                                        />
+
                                     }
+                                </Group>
+                                <Group header={<Header mode={'secondary'}>Товары</Header>}>
+                                    <CommoditiesGroup
+                                        s={this.setActiveModal}
+                                        now={this.state.commoditiesAvailableNow}
+                                        commodities={this.state.commoditiesAvailable}
+                                        portfolio={this.state.commodities}
+                                        p={false}/>
                                 </Group>
                                 <Group header={<Header mode={"secondary"}>на следующей неделе</Header>}>
                                     <CardScroll>
                                         {
-                                            this.state.stocksMarket.map((v,i) => {
-                                                return <HorizontalCell>
-                                                    <Avatar size={64} src={require(`./Logos/${StocksData[v.ticker].logo}`).default}/>
-                                                </HorizontalCell>
+                                            this.state.stocksAvailableNextWeek.map((v,i) => {
+                                                return <StockCardHorizontal key={'horizontalcard'+i} v={v}/>
                                             })
                                         }
                                     </CardScroll>
                                 </Group>
+                                <div style={{height: 48}}/>
                             </Panel>
                             <Panel id={"rating"}>
-
                             </Panel>
                         </View>
                     </SplitLayout>
                     <FixedLayout>
+                        {this.state.snackBar}
                         <Epic activeStory={this.state.activePanel} tabbar={
                             <Tabbar>
                                 <TabbarItem selected={this.state.activePanel === "portfolio"} id={"portfolio"} onClick={() => this.setActivePanel("portfolio")} text={"Портфель"}>
@@ -242,27 +671,6 @@ class App extends React.Component{
         </ConfigProvider>
     }
 }
-
-// const App = () => {
-//     const platform = usePlatform();
-//     fetch(
-//         'https://data.sandbox.alpaca.markets/v2/stocks/AAPL/quotes/latest',//?start='+(new Date(Date.now() - 1000*15*60).toISOString()),
-//         {
-//             method: 'GET',
-//             mode: 'cors',
-//             headers: {
-//                 'Authorization': 'Basic ' + window.btoa(api_key+':'+api_secret)
-//             }
-//         }
-//     ).catch(() => {}).then(
-//         (e) => {
-//             //s
-//         }
-//     )
-//     const [activePanel, setActivePanel] = useState("portfolio");
-//     const
-//
-// }
 
 withPlatform(App);
 
