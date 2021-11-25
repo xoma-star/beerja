@@ -1,6 +1,6 @@
 import React from 'react'
 import StockCard from "./StockCard";
-import {Header, Placeholder, Spinner} from "@vkontakte/vkui";
+import {Group, Header, Placeholder, Spinner} from "@vkontakte/vkui";
 import {Icon28GhostSimleOutline, Icon56GhostOutline} from "@vkontakte/icons";
 
 const CommoditiesGroup = (p) => {
@@ -15,7 +15,7 @@ const CommoditiesGroup = (p) => {
     if(p.now.length === 0){
         return <Placeholder icon={<Icon28GhostSimleOutline width={56} height={56}/>} header={<Header>Нет доступных предложений</Header>}/>
     }
-    return p.now.map(k => {
+    return <Group header={<Header mode={'secondary'}>Товары</Header>}> {p.now.map(k => {
         v = {
             count: 0,
             avgPrice: 1 / p.commodities.ratesBefore[k],
@@ -41,7 +41,7 @@ const CommoditiesGroup = (p) => {
             />
         }
         return '';
-    });
+    })}</Group>
 }
 
 export default CommoditiesGroup;

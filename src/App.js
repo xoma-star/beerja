@@ -15,10 +15,7 @@ import {
     CardScroll,
     Header,
     withPlatform,
-    Placeholder,
-    Button,
     FixedLayout,
-    Spinner,
     Snackbar,
     Avatar
 } from "@vkontakte/vkui";
@@ -27,11 +24,9 @@ import {
     Icon24CupOutline,
     Icon24SartOutline,
     Icon24WorkOutline,
-    Icon56GestureOutline
 } from '@vkontakte/icons';
 import BalanceCards from "./Components/BalanceCards";
 import fs from "./Functions/Firebase.js";
-import StockCard from "./Components/StockCard";
 import StocksData from "./Functions/StocksData";
 import Modal from "./Components/Modal";
 import StockCardHorizontal from "./Components/StockCardHorizontal";
@@ -41,6 +36,7 @@ import OperationCards from "./Components/OperationCards";
 import MarginCards from "./Components/MarginCards";
 import CommoditiesGroup from "./Components/CommoditiesGroup";
 import ErrorBlock from "./Components/ErrorBlock";
+import StockGroup from "./Components/StockGroup";
 
 const unique = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -74,8 +70,8 @@ class App extends React.Component{
         }
         this.api_key = 'CKB1ZOZN09CF26RO6LPJ';
         this.api_secret = 'cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao';
-        this.getPrice = this.getPrice.bind(this);
         this.setActiveModal = this.setActiveModal.bind(this);
+        this.setActivePanel = this.setActivePanel.bind(this);
         this.userDataUpdatesSubscribe = this.userDataUpdatesSubscribe.bind(this);
         this.stocksSubscribe = this.stocksSubscribe.bind(this);
         this.dealComplete = this.dealComplete.bind(this);
@@ -85,6 +81,7 @@ class App extends React.Component{
         this.changeMarginStatus = this.changeMarginStatus.bind(this);
         this.openDeals = this.openDeals.bind(this);
         this.getCommodities = this.getCommodities.bind(this);
+        this.getPrice = this.getPrice.bind(this);
     }
     async componentDidMount() {
         await this.connectAlpacaWSS();
@@ -441,28 +438,27 @@ class App extends React.Component{
     }
     marketOpen(){
         this.setState({isMarketOpen: true});
-        return;
-        setInterval(() => {
-            let now = new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000 - 1000 * 5 * 60 * 60);
-            let open = new Date(now.getTime());
-            let close = new Date(now.getTime());
-            open.setHours(3);
-            open.setMinutes(30);
-            open.setSeconds(0);
-            close.setHours(20);
-            close.setMinutes(0);
-            close.setSeconds(0);
-            if(now.getTime() >= open.getTime() && now.getTime() <= close.getTime()){
-                if(!this.state.isMarketOpen){
-                    this.setState({isMarketOpen: true});
-                }
-            }
-            else{
-                if(this.state.isMarketOpen){
-                    this.setState({isMarketOpen: true});
-                }
-            }
-        }, 5000)
+        // setInterval(() => {
+        //     let now = new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000 - 1000 * 5 * 60 * 60);
+        //     let open = new Date(now.getTime());
+        //     let close = new Date(now.getTime());
+        //     open.setHours(3);
+        //     open.setMinutes(30);
+        //     open.setSeconds(0);
+        //     close.setHours(20);
+        //     close.setMinutes(0);
+        //     close.setSeconds(0);
+        //     if(now.getTime() >= open.getTime() && now.getTime() <= close.getTime()){
+        //         if(!this.state.isMarketOpen){
+        //             this.setState({isMarketOpen: true});
+        //         }
+        //     }
+        //     else{
+        //         if(this.state.isMarketOpen){
+        //             this.setState({isMarketOpen: true});
+        //         }
+        //     }
+        // }, 5000)
     }
     async getPrice(ticker, date=null){
         let a;
@@ -549,93 +545,61 @@ class App extends React.Component{
                                     userValue={this.userValue()}
                                 />
                                 <ErrorBlock e={this.state.errors}/>
-                                <MarginCards u={this.userValue()} m={this.changeMarginStatus} e={this.state.marginable}/>
+                                <MarginCards
+                                    u={this.userValue()}
+                                    m={this.changeMarginStatus}
+                                    e={this.state.marginable}
+                                />
                                 <OperationCards
                                     od={this.openDeals}
                                     l={this.state.bonusLoading}
                                     tdb={this.takeDailyBonus}
                                     b={this.state.lastBonusTaken}/>
-                                <Group
-                                    header={<Header mode={"secondary"}>Акции</Header>}
-                                >
-                                    {!this.state.loading && this.state.portfolio.length > 0 ?
-                                        this.state.portfolio.map((v) => {
-                                        return (
-                                            <StockCard
-                                                key={v.price+v.ticker}
-                                                avgPrice={v.avgPrice}
-                                                count={v.count}
-                                                price={v.price}
-                                                ticker={v.ticker}
-                                                portfolio={true}
-                                                setActiveModal={this.setActiveModal}
-                                                sign={'$'}
-                                                measure={'шт.'}
-                                            />
-                                        )
-                                    }) :
-                                        <Placeholder
-                                            icon={!this.state.loading ? <Icon56GestureOutline/> : <Spinner size={"large"}/>}
-                                            header={!this.state.loading ? <Header>Здесь пока пусто</Header> : ''}
-                                            action={!this.state.loading ? <Button onClick={() => this.setActivePanel("quotes")} size={"m"}>К покупкам</Button> : ''}
-                                        />
-                                    }
-                                </Group>
-                                <Group header={<Header mode={'secondary'}>Валюты</Header>}>
-                                    <CurrenciesGroup s={this.setActiveModal} cash={this.state.cash} rates={this.state.currencies} p={true}/>
-                                </Group>
-                                <Group header={<Header mode={'secondary'}>Товары</Header>}>
-                                    <CommoditiesGroup
-                                        s={this.setActiveModal}
-                                        commodities={this.state.commoditiesAvailable}
-                                        now={this.state.commoditiesAvailableNow}
-                                        portfolio={this.state.commodities}
-                                        p={true}/>
-                                </Group>
+                                <StockGroup
+                                    isPortfolio={true}
+                                    portfolio={this.state.portfolio}
+                                    stocksMarket={this.state.stocksMarket}
+                                    setActiveModal={this.setActiveModal}
+                                    setActivePanel={this.setActivePanel}
+                                    loading={this.state.loading}
+                                />
+                                <CurrenciesGroup
+                                    s={this.setActiveModal}
+                                    cash={this.state.cash}
+                                    rates={this.state.currencies}
+                                    p={true}
+                                />
+                                <CommoditiesGroup
+                                    s={this.setActiveModal}
+                                    commodities={this.state.commoditiesAvailable}
+                                    now={this.state.commoditiesAvailableNow}
+                                    portfolio={this.state.commodities}
+                                    p={true}
+                                />
                                 <div style={{height: 48}}/>
                             </Panel>
                             <Panel id={"quotes"}>
-                                <Group header={<Header mode={'secondary'}>Валюты</Header>}>
-                                    <CurrenciesGroup s={this.setActiveModal} cash={this.state.cash} rates={this.state.currencies} p={false}/>
-                                </Group>
-                                <Group
-                                    header={<Header mode={"secondary"}>Акции</Header>}
-                                >
-                                    {
-                                        this.state.stocksMarket.length > 0 ? this.state.stocksMarket.map((v) => {
-                                            let count = this.state.portfolio.find(o => o.ticker === v.ticker);
-                                            if(typeof(count) !== 'undefined'){
-                                                count = count.count;
-                                            }
-                                            else{
-                                                count = 0;
-                                            }
-                                            return <StockCard
-                                                key={v.price+v.ticker}
-                                                avgPrice={v.priceBefore}
-                                                count={count}
-                                                price={v.price}
-                                                ticker={v.ticker}
-                                                portfolio={false}
-                                                setActiveModal={this.setActiveModal}
-                                                sign={'$'}
-                                                measure={null}
-                                            />
-                                        }) : <Placeholder
-                                            icon={<Spinner size={"large"}/>}
-                                            header={<Header>Загружаем</Header>}
-                                        />
-
-                                    }
-                                </Group>
-                                <Group header={<Header mode={'secondary'}>Товары</Header>}>
-                                    <CommoditiesGroup
-                                        s={this.setActiveModal}
-                                        now={this.state.commoditiesAvailableNow}
-                                        commodities={this.state.commoditiesAvailable}
-                                        portfolio={this.state.commodities}
-                                        p={false}/>
-                                </Group>
+                                <CurrenciesGroup
+                                    s={this.setActiveModal}
+                                    cash={this.state.cash}
+                                    rates={this.state.currencies}
+                                    p={false}
+                                />
+                                <StockGroup
+                                    isPortfolio={false}
+                                    portfolio={this.state.portfolio}
+                                    stocksMarket={this.state.stocksMarket}
+                                    setActiveModal={this.setActiveModal}
+                                    setActivePanel={this.setActivePanel}
+                                    loading={this.state.loading}
+                                />
+                                <CommoditiesGroup
+                                    s={this.setActiveModal}
+                                    now={this.state.commoditiesAvailableNow}
+                                    commodities={this.state.commoditiesAvailable}
+                                    portfolio={this.state.commodities}
+                                    p={false}
+                                />
                                 <Group header={<Header mode={"secondary"}>на следующей неделе</Header>}>
                                     <CardScroll>
                                         {

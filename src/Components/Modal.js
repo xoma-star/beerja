@@ -303,11 +303,11 @@ const Modal = (p) => {
                 {input !== 0 && input <= availableL ? <FormItem>
                     <Cell
                         style={{paddingLeft: 12, paddingRight: 12}}
-                        after={(lots * input * p.t.price * commission).toFixed(2)+' '+p.t.sign}
+                        after={ruFormat((lots * input * p.t.price * commission))+' '+p.t.sign}
                         description={'Коммиссия'}/>
                     <Cell
                         style={{paddingLeft: 12, paddingRight: 12}}
-                        after={(lots * input * p.t.price * (1 - isBuying * commission)).toFixed(2)+' '+p.t.sign}
+                        after={ruFormat((lots * input * p.t.price * (1 - isBuying * commission)))+' '+p.t.sign}
                         description={'Итого'}/>
                 </FormItem> : ''}
             </div>
