@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/beerja/static/css/main.f73bba34.chunk.css",
-    "main.js": "/beerja/static/js/main.b6967e18.chunk.js",
-    "main.js.map": "/beerja/static/js/main.b6967e18.chunk.js.map",
+    "main.js": "/beerja/static/js/main.aa015a9b.chunk.js",
+    "main.js.map": "/beerja/static/js/main.aa015a9b.chunk.js.map",
     "runtime-main.js": "/beerja/static/js/runtime-main.acff1211.js",
     "runtime-main.js.map": "/beerja/static/js/runtime-main.acff1211.js.map",
     "static/css/2.28389d10.chunk.css": "/beerja/static/css/2.28389d10.chunk.css",
@@ -190,6 +190,6 @@
     "static/css/2.28389d10.chunk.css",
     "static/js/2.24555c21.chunk.js",
     "static/css/main.f73bba34.chunk.css",
-    "static/js/main.b6967e18.chunk.js"
+    "static/js/main.aa015a9b.chunk.js"
   ]
 }
