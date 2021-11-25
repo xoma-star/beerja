@@ -295,7 +295,7 @@ class App extends React.Component{
         }
     }
     takeDailyBonus(){
-        const bonus = 10000;
+        const bonus = 100000;
         if(new Date().getDate() === new Date(this.state.lastBonusTaken).getDate()){
             this.setState({
                 snackBar: <Snackbar
@@ -337,7 +337,7 @@ class App extends React.Component{
                         onClose={() => this.setState({snackBar: null})}
                         before={<Icon20CheckCircleFillGreen width={24} height={24} />}
                     >
-                        На счет зачислено 10 000 ₽
+                        На счет зачислено 100 000 ₽
                     </Snackbar>,
                     bonusLoading: false
                 }))
@@ -440,6 +440,8 @@ class App extends React.Component{
         return a;
     }
     marketOpen(){
+        this.setState({isMarketOpen: true});
+        return;
         setInterval(() => {
             let now = new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000 - 1000 * 5 * 60 * 60);
             let open = new Date(now.getTime());
@@ -457,9 +459,8 @@ class App extends React.Component{
             }
             else{
                 if(this.state.isMarketOpen){
-                    this.setState({isMarketOpen: false});
+                    this.setState({isMarketOpen: true});
                 }
-                // this.setState({isMarketOpen: true});
             }
         }, 5000)
     }
