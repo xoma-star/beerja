@@ -1,3 +1,7 @@
 .js-copyright-label{
     display: none !important;
 }
+.active{
+    color: var(--background_content);
+    background-color: var(--accent_alternate);
+}

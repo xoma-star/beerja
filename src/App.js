@@ -37,6 +37,8 @@ import MarginCards from "./Components/MarginCards";
 import CommoditiesGroup from "./Components/CommoditiesGroup";
 import ErrorBlock from "./Components/ErrorBlock";
 import StockGroup from "./Components/StockGroup";
+import MarketBlock from "./Components/MarketBlock";
+import MarketSections from "./Functions/MarketSections";
 
 const unique = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -60,7 +62,7 @@ class App extends React.Component{
             AlpacaConnected: false,
             snackBar: '',
             deals: [],
-            marketOpen: false,
+            isMarketOpen: 'close1',
             lastBonusTaken: Infinity,
             marginable: false,
             commoditiesAvailable: {},
@@ -437,28 +439,12 @@ class App extends React.Component{
         return a;
     }
     marketOpen(){
-        this.setState({isMarketOpen: true});
-        // setInterval(() => {
-        //     let now = new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000 - 1000 * 5 * 60 * 60);
-        //     let open = new Date(now.getTime());
-        //     let close = new Date(now.getTime());
-        //     open.setHours(3);
-        //     open.setMinutes(30);
-        //     open.setSeconds(0);
-        //     close.setHours(20);
-        //     close.setMinutes(0);
-        //     close.setSeconds(0);
-        //     if(now.getTime() >= open.getTime() && now.getTime() <= close.getTime()){
-        //         if(!this.state.isMarketOpen){
-        //             this.setState({isMarketOpen: true});
-        //         }
-        //     }
-        //     else{
-        //         if(this.state.isMarketOpen){
-        //             this.setState({isMarketOpen: true});
-        //         }
-        //     }
-        // }, 5000)
+        setInterval(() => {
+            let a = MarketSections().now;
+            if(this.state.isMarketOpen !== a){
+                this.setState({isMarketOpen: a})
+            }
+        }, 5000)
     }
     async getPrice(ticker, date=null){
         let a;
@@ -579,6 +565,7 @@ class App extends React.Component{
                                 <div style={{height: 48}}/>
                             </Panel>
                             <Panel id={"quotes"}>
+                                <MarketBlock m={this.state.isMarketOpen}/>
                                 <CurrenciesGroup
                                     s={this.setActiveModal}
                                     cash={this.state.cash}

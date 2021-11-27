@@ -36,3 +36,46 @@
     transform: rotate(360deg);
   }
 }
+
+body[scheme=space_gray]{
+  /*--background_content: #181818 !important;*/
+  /*--separator_common: #919191 !important;*/
+  /*--content_tint_background: #B0BFC2 !important;*/
+}
+.marketProgress{
+  height: 8px !important;
+  margin-right: 5px;
+  border-radius: 5px !important;
+}
+.marketProgress.marketProgressClose .vkuiProgress__in{
+  background: var(--dynamic_gray);
+}
+.marketProgress.marketProgressPre .vkuiProgress__in{
+  background: var(--dynamic_orange);
+}
+.marketProgress.marketProgressOpen .vkuiProgress__in{
+  background: var(--dynamic_green);
+}
+.marketProgress.marketProgressPost .vkuiProgress__in{
+  background: var(--blue_200);
+}
+.marketProgress.marketProgressClose{
+  background: var(--loader_track_fill);
+}
+.marketProgress.marketProgressPre{
+  background: #ffa0007F;
+}
+.marketProgress.marketProgressOpen{
+  background: #4bb34b80;
+}
+.marketProgress.marketProgressPost{
+  background: #5c9ce69e;
+}
+.marketProgress .vkuiProgress__in{
+  background: inherit;
+  margin-right: 1%;
+}
+.marketProgress .vkuiProgress__bg{
+  background: inherit;
+  opacity: 0.5;
+}

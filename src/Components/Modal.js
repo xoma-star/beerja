@@ -107,18 +107,20 @@ const Modal = (p) => {
         }
 
         const formatInput = (t) => {
-            if(t.length === 0){
-                t = 0;
+            t = String(t);
+            if(t.charAt(0) === '0' && Number(t) < 10){
+                t = t.substr(1);
             }
-            // t = t.replace(/[^0-9]/g, '');
-            t = parseInt(t);
-            // if(t.charAt(0) === '0' && t > 0){
-            //     t = t.substr(1);
-            // }
+            if(t.length === 0){
+                t = '0';
+            }
+            if(typeof t !== 'number') {
+                t = t.replace(/[^0-9]/g, '');
+            }
             if(t === 0 || t > available){
                 setMarginable(false);
             }
-            return parseInt(t);
+            return Number(t);
         }
         const makeDeal = () => {
             let a = isBuying;
@@ -287,13 +289,14 @@ const Modal = (p) => {
                     <div style={{color: 'var(--dynamic_red)'}}>Недостаточно средств</div>
                 }>
                     <Input //autoFocus плохо работает с этим
+                        // type={'number'} плохо с форматинпут
                         after={
                             <div style={{display: 'flex'}}>
                                 {input !== 0 ? <IconButton icon={<Icon24Cancel onClick={() => updateInput(0)}/>}/> : ''}
-                                <IconButton icon={<Icon24Add onClick={() => {updateInput(formatInput(input + 1))}}/>}/>
+                                <IconButton icon={<Icon24Add onClick={() => {updateInput(formatInput(Number(input) + 1))}}/>}/>
                             </div>
                         }
-                        onChange={(e) => updateInput(formatInput(e.target.value))}
+                        onChange={(e) => updateInput(formatInput(Number(e.target.value)))}
                         value={input}
                     />
                 </FormItem>
@@ -315,7 +318,7 @@ const Modal = (p) => {
         stockModal = <div>
             {Description()}
             <FormLayout>
-                {!p.m && !isCurency ? <Button disabled stretched size={'l'} mode={'secondary'}>Биржа закрыта</Button> :
+                {p.m === 'close1' || p.m === 'close2' ? <Button disabled stretched size={'l'} mode={'secondary'}>Биржа закрыта</Button> :
                     type === null ?
                         SellBuyButtons()
                         :
