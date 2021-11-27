@@ -59,6 +59,24 @@ body[scheme=space_gray]{
 .marketProgress.marketProgressPost .vkuiProgress__in{
   background: var(--blue_200);
 }
+.pulse.pre{
+  background: var(--dynamic_orange);
+  box-shadow: 0 0 0 0 var(--dynamic_orange);
+  transform: scale(1);
+  animation: pulsePre 2s infinite;
+}
+.pulse.open{
+  background: var(--dynamic_green);
+  box-shadow: 0 0 0 0 var(--dynamic_green);
+  transform: scale(1);
+  animation: pulseOpen 2s infinite;
+}
+.pulse.post{
+  background: var(--blue_200);
+  box-shadow: 0 0 0 0 var(--blue_200);
+  transform: scale(1);
+  animation: pulsePost 2s infinite;
+}
 .marketProgress.marketProgressClose{
   background: var(--loader_track_fill);
 }
@@ -78,4 +96,55 @@ body[scheme=space_gray]{
 .marketProgress .vkuiProgress__bg{
   background: inherit;
   opacity: 0.5;
+}
+@keyframes pulsePre {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 #ffa0007F;
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+@keyframes pulseOpen {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 #4bb34b80;
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+@keyframes pulsePost {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 #5c9ce69e;
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+.paddingBottom0 .vkuiGroup__inner {
+  padding-bottom: 0;
 }

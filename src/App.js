@@ -17,7 +17,7 @@ import {
     withPlatform,
     FixedLayout,
     Snackbar,
-    Avatar
+    Avatar, PullToRefresh
 } from "@vkontakte/vkui";
 import {
     Icon16Done, Icon16ErrorCircleFill, Icon20CheckCircleFillGreen,
@@ -68,7 +68,8 @@ class App extends React.Component{
             commoditiesAvailable: {},
             commodities: {},
             errors: [],
-            bonusLoading: false
+            bonusLoading: false,
+            fetching: false
         }
         this.api_key = 'CKB1ZOZN09CF26RO6LPJ';
         this.api_secret = 'cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao';
@@ -84,14 +85,10 @@ class App extends React.Component{
         this.openDeals = this.openDeals.bind(this);
         this.getCommodities = this.getCommodities.bind(this);
         this.getPrice = this.getPrice.bind(this);
+        this.refresh = this.refresh.bind(this);
     }
     async componentDidMount() {
         await this.connectAlpacaWSS();
-        await this.getCurrencyData();
-        await this.userDataUpdatesSubscribe();
-        await this.stocksSubscribe();
-        await this.getCommodities();
-        this.userValue();
         await bridge.subscribe(e => {
             if(e.detail.type === 'VKWebAppUpdateConfig'){
                 this.setState({
@@ -103,6 +100,10 @@ class App extends React.Component{
 
         });
         this.marketOpen();
+        await this.userDataUpdatesSubscribe();
+        await this.stocksSubscribe();
+        await this.getCurrencyData();
+        await this.getCommodities();
     }
     componentDidUpdate(prevProps, prevState, snapshot) {
         if(this.state.AlpacaConnected){
@@ -440,9 +441,9 @@ class App extends React.Component{
     }
     marketOpen(){
         setInterval(() => {
-            let a = MarketSections().now;
-            if(this.state.isMarketOpen !== a){
-                this.setState({isMarketOpen: a})
+            let a = MarketSections();
+            if(this.state.isMarketOpen !== a.now && !a.isDayOff){
+                this.setState({isMarketOpen: a.now})
             }
         }, 5000)
     }
@@ -500,6 +501,42 @@ class App extends React.Component{
             marginable: !this.state.marginable
         });
     }
+    async refresh(){
+        this.setState({fetching: true})
+        await this.getCurrencyData();
+        await this.getCommodities();
+        if(!this.state.AlpacaConnected){
+            await fs.collection('users').doc('1').get().then(
+                e => {
+                    this.portfolioInit(e.data().portfolio).then(v =>
+                        this.setState({
+                            portfolio: v
+                        })
+                    );
+                }
+            );
+            await fs.collection('users').doc('-1').get().then(
+                async e => {
+                    this.pushStock(e.data().thisweek).then(v => {
+                        this.setState({
+                            stocksMarket: v
+                        })
+                    });
+                }
+            );
+        }
+        else{
+            this.setState({
+                snackBar: <Snackbar
+                    onClose={() => this.setState({snackBar: null})}
+                    before={<Icon20CheckCircleFillGreen width={24} height={24} />}
+                >
+                    Данные обновляются в реальном времени
+                </Snackbar>
+            })
+        }
+        this.setState({fetching: false});
+    }
     render() {
         const {platform} = this.props;
         return <ConfigProvider platform={platform} scheme={this.state.scheme}>
@@ -524,78 +561,82 @@ class App extends React.Component{
                     }>
                         <View activePanel={this.state.activePanel}>
                             <Panel id={"portfolio"}>
-                                <BalanceCards
-                                    exchangeRates={this.state.currencies}
-                                    portfolio={this.state.portfolio}
-                                    cash={this.state.cash}
-                                    userValue={this.userValue()}
-                                />
-                                <ErrorBlock e={this.state.errors}/>
-                                <MarginCards
-                                    u={this.userValue()}
-                                    m={this.changeMarginStatus}
-                                    e={this.state.marginable}
-                                />
-                                <OperationCards
-                                    od={this.openDeals}
-                                    l={this.state.bonusLoading}
-                                    tdb={this.takeDailyBonus}
-                                    b={this.state.lastBonusTaken}/>
-                                <StockGroup
-                                    isPortfolio={true}
-                                    portfolio={this.state.portfolio}
-                                    stocksMarket={this.state.stocksMarket}
-                                    setActiveModal={this.setActiveModal}
-                                    setActivePanel={this.setActivePanel}
-                                    loading={this.state.loading}
-                                />
-                                <CurrenciesGroup
-                                    s={this.setActiveModal}
-                                    cash={this.state.cash}
-                                    rates={this.state.currencies}
-                                    p={true}
-                                />
-                                <CommoditiesGroup
-                                    s={this.setActiveModal}
-                                    commodities={this.state.commoditiesAvailable}
-                                    now={this.state.commoditiesAvailableNow}
-                                    portfolio={this.state.commodities}
-                                    p={true}
-                                />
+                                <PullToRefresh onRefresh={this.refresh} isFetching={this.state.fetching}>
+                                    <BalanceCards
+                                        exchangeRates={this.state.currencies}
+                                        portfolio={this.state.portfolio}
+                                        cash={this.state.cash}
+                                        userValue={this.userValue()}
+                                    />
+                                    <ErrorBlock e={this.state.errors}/>
+                                    <MarginCards
+                                        u={this.userValue()}
+                                        m={this.changeMarginStatus}
+                                        e={this.state.marginable}
+                                    />
+                                    <OperationCards
+                                        od={this.openDeals}
+                                        l={this.state.bonusLoading}
+                                        tdb={this.takeDailyBonus}
+                                        b={this.state.lastBonusTaken}/>
+                                    <StockGroup
+                                        isPortfolio={true}
+                                        portfolio={this.state.portfolio}
+                                        stocksMarket={this.state.stocksMarket}
+                                        setActiveModal={this.setActiveModal}
+                                        setActivePanel={this.setActivePanel}
+                                        loading={this.state.loading}
+                                    />
+                                    <CurrenciesGroup
+                                        s={this.setActiveModal}
+                                        cash={this.state.cash}
+                                        rates={this.state.currencies}
+                                        p={true}
+                                    />
+                                    <CommoditiesGroup
+                                        s={this.setActiveModal}
+                                        commodities={this.state.commoditiesAvailable}
+                                        now={this.state.commoditiesAvailableNow}
+                                        portfolio={this.state.commodities}
+                                        p={true}
+                                    />
+                                </PullToRefresh>
                                 <div style={{height: 48}}/>
                             </Panel>
                             <Panel id={"quotes"}>
-                                <MarketBlock m={this.state.isMarketOpen}/>
-                                <CurrenciesGroup
-                                    s={this.setActiveModal}
-                                    cash={this.state.cash}
-                                    rates={this.state.currencies}
-                                    p={false}
-                                />
-                                <StockGroup
-                                    isPortfolio={false}
-                                    portfolio={this.state.portfolio}
-                                    stocksMarket={this.state.stocksMarket}
-                                    setActiveModal={this.setActiveModal}
-                                    setActivePanel={this.setActivePanel}
-                                    loading={this.state.loading}
-                                />
-                                <CommoditiesGroup
-                                    s={this.setActiveModal}
-                                    now={this.state.commoditiesAvailableNow}
-                                    commodities={this.state.commoditiesAvailable}
-                                    portfolio={this.state.commodities}
-                                    p={false}
-                                />
-                                <Group header={<Header mode={"secondary"}>на следующей неделе</Header>}>
-                                    <CardScroll>
-                                        {
-                                            this.state.stocksAvailableNextWeek.map((v,i) => {
-                                                return <StockCardHorizontal key={'horizontalcard'+i} v={v}/>
-                                            })
-                                        }
-                                    </CardScroll>
-                                </Group>
+                                <PullToRefresh onRefresh={this.refresh} isFetching={this.state.fetching}>
+                                    <MarketBlock m={this.state.isMarketOpen}/>
+                                    <CurrenciesGroup
+                                        s={this.setActiveModal}
+                                        cash={this.state.cash}
+                                        rates={this.state.currencies}
+                                        p={false}
+                                    />
+                                    <StockGroup
+                                        isPortfolio={false}
+                                        portfolio={this.state.portfolio}
+                                        stocksMarket={this.state.stocksMarket}
+                                        setActiveModal={this.setActiveModal}
+                                        setActivePanel={this.setActivePanel}
+                                        loading={this.state.loading}
+                                    />
+                                    <CommoditiesGroup
+                                        s={this.setActiveModal}
+                                        now={this.state.commoditiesAvailableNow}
+                                        commodities={this.state.commoditiesAvailable}
+                                        portfolio={this.state.commodities}
+                                        p={false}
+                                    />
+                                    <Group header={<Header mode={"secondary"}>на следующей неделе</Header>}>
+                                        <CardScroll>
+                                            {
+                                                this.state.stocksAvailableNextWeek.map((v,i) => {
+                                                    return <StockCardHorizontal key={'horizontalcard'+i} v={v}/>
+                                                })
+                                            }
+                                        </CardScroll>
+                                    </Group>
+                                </PullToRefresh>
                                 <div style={{height: 48}}/>
                             </Panel>
                             <Panel id={"rating"}>

@@ -70,13 +70,18 @@ const MarketSections = () => {
             break;
         }
     }
+    let dayOff = false;
+    if(now.getDay() === 0 || now.getDay() === 6){
+        dayOff = true;
+    }
     return {
         pre: pre,
         open: open,
         post: post,
         close: close,
         now: nowSect,
-        progress: values
+        progress: values,
+        isDayOff: dayOff
     }
 }
 

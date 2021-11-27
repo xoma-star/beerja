@@ -4,7 +4,7 @@ import StockCard from "./StockCard";
 
 const CurrenciesGroup = (p) => {
     if(p.cash.length === 0 || p.rates.length === 0){
-        return <Spinner size="large"/>
+        return <Group header={<Header mode={'secondary'}>Валюты</Header>}><Spinner/></Group>
     }
     let v;
     let s = {

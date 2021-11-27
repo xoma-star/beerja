@@ -1,19 +1,23 @@
 import React from 'react'
 import StockCard from "./StockCard";
 import {Group, Header, Placeholder, Spinner} from "@vkontakte/vkui";
-import {Icon28GhostSimleOutline, Icon56GhostOutline} from "@vkontakte/icons";
+import {Icon28GhostSimleOutline} from "@vkontakte/icons";
 
 const CommoditiesGroup = (p) => {
     let v;
     let fromPortfolio;
     if(!p.commodities.rates){
-        return <Spinner/>
+        return <Group header={<Header mode={'secondary'}>Товары</Header>}><Spinner/></Group>
     }
     if(Object.keys(p.portfolio).length === 0 && p.p){
-        return <Placeholder icon={<Icon56GhostOutline/>} header={<Header>А где? На маркете!</Header>}/>
+        return ''
+        // return <Placeholder icon={<Icon56GhostOutline/>} header={<Header>А где? На маркете!</Header>}/>
     }
     if(p.now.length === 0){
-        return <Placeholder icon={<Icon28GhostSimleOutline width={56} height={56}/>} header={<Header>Нет доступных предложений</Header>}/>
+        // return ''
+        return <Group header={<Header mode={'secondary'}>Товары</Header>}>
+            <Placeholder icon={<Icon28GhostSimleOutline width={56} height={56}/>} header={<Header>Нет доступных предложений</Header>}/>
+        </Group>
     }
     return <Group header={<Header mode={'secondary'}>Товары</Header>}> {p.now.map(k => {
         v = {
