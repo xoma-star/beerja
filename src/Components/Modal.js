@@ -28,6 +28,7 @@ import {
 import fs from "../Functions/Firebase";
 import StocksData from "../Functions/StocksData";
 import SmallChart from "./TradingView/SmallChart";
+import AnalyticsBlock from "./AnalyticsBlock";
 
 const Modal = (p) => {
     const [type, setType] = useState(null);
@@ -441,6 +442,13 @@ const Modal = (p) => {
                     </div>
                 }) : <Placeholder icon={<Icon56GestureOutline/>}>Сделок еще не было</Placeholder>}
             </List>
+        </ModalPage>
+        <ModalPage
+            dynamicContentHeight
+            id={'analytics'}
+            header={<ModalPageHeader left={<PanelHeaderBack onClick={closeModal}/>}><Header>Аналитика</Header></ModalPageHeader>}
+        >
+            <AnalyticsBlock v={p.u}/>
         </ModalPage>
     </ModalRoot>
 }

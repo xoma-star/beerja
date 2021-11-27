@@ -5,7 +5,7 @@ import MarketSections from "../Functions/MarketSections";
 const MarketBlock = (p) => {
     const states = {
         close1: {
-            description: 'Рынок закрыт',
+            description: 'Биржа закрыта',
             colors: {
                 background: 'var(--dynamic_gray)',
                 element: 'var(--dynamic_gray)'
@@ -37,7 +37,7 @@ const MarketBlock = (p) => {
             className: 'post'
         },
         close2: {
-            description: 'Рынок закрыт',
+            description: 'Биржа закрыта',
             colors: {
                 background: 'var(--dynamic_gray)',
                 element: 'var(--dynamic_gray)'

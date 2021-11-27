@@ -86,6 +86,7 @@ class App extends React.Component{
         this.getCommodities = this.getCommodities.bind(this);
         this.getPrice = this.getPrice.bind(this);
         this.refresh = this.refresh.bind(this);
+        this.openAnal = this.openAnal.bind(this);
     }
     async componentDidMount() {
         await this.connectAlpacaWSS();
@@ -157,22 +158,26 @@ class App extends React.Component{
         }
         let usdValue = 0;
         let usdAbs = 0;
+        let currenciesVal = 0, stocksVal = 0, commoditiesVal = 0;
         this.state.portfolio.forEach(v => {
             usdValue += v.price * v.count;
             if(v.count > 0){
                 usdAbs += Math.abs(v.price * v.count);
+                stocksVal += v.price * v.count;
             }
         });
         for (const [k, v] of Object.entries(this.state.cash)) {
             usdValue += v.count * rates[k];
             if(v.count > 0) {
                 usdAbs += Math.abs(v.count * rates[k]);
+                currenciesVal += v.count * rates[k];
             }
         }
         for (const [, v] of Object.entries(this.state.commodities)) {
             usdValue += v.count * v.avgPrice;
             if(v.count > 0) {
                 usdAbs += Math.abs(v.count * v.avgPrice);
+                commoditiesVal += v.count * v.avgPrice;
             }
         }
         let eurValue = usdValue / EURUSD;
@@ -190,7 +195,12 @@ class App extends React.Component{
             rubValueNaked: naked,
             rubValueAvailable: avail > 0 ? avail : 0,
             leverage: leverage,
-            commission: commission
+            commission: commission,
+            values: {
+                stocks:  stocksVal / RUBUSD,
+                currencies: currenciesVal / RUBUSD,
+                commodities: commoditiesVal / RUBUSD
+            }
         }
     }
     async getCommodities(){
@@ -229,7 +239,7 @@ class App extends React.Component{
     }
     async getCurrencyData(){
         let a;
-        await fetch('https://www.cbr-xml-daily.ru/daily_json.js').then(async e => {
+        await fetch('https://www.cbr-xml-daily.ru/daily_json.js', {cache: 'no-cache'}).then(async e => {
             a = await Promise.resolve(e.json());
             this.setState({currencies: {
                     rub: {val: 1, ticker: 'RUBRUB', valPrev: 1},
@@ -531,11 +541,14 @@ class App extends React.Component{
                     onClose={() => this.setState({snackBar: null})}
                     before={<Icon20CheckCircleFillGreen width={24} height={24} />}
                 >
-                    Данные обновляются в реальном времени
+                    Данные уже обновляются в реальном времени
                 </Snackbar>
             })
         }
         this.setState({fetching: false});
+    }
+    openAnal(){
+        this.setActiveModal('analytics', null);
     }
     render() {
         const {platform} = this.props;
@@ -578,6 +591,7 @@ class App extends React.Component{
                                         od={this.openDeals}
                                         l={this.state.bonusLoading}
                                         tdb={this.takeDailyBonus}
+                                        oa={this.openAnal}
                                         b={this.state.lastBonusTaken}/>
                                     <StockGroup
                                         isPortfolio={true}

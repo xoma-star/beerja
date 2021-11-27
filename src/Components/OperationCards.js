@@ -32,7 +32,15 @@ const OperationCards = (p) => {
                 </Title>
                 {p.l ? <Icon28StopwatchOutline style={{display: 'inline-block', marginTop: 6}}/> : <Icon28GiftOutline style={{display: 'inline-block', marginTop: 6}}/>}
             </Card>
-            <Card style={{paddingTop: 14, paddingBottom: 14, textAlign: 'center'}}>
+            <Card
+                style={{paddingTop: 14, paddingBottom: 14, textAlign: 'center'}}
+                onClick={async () =>
+                    {
+                        p.oa();
+                        await bridge.send("VKWebAppTapticImpactOccurred", {"style": "light"});
+                    }
+                }
+            >
                 <Title weight={'semibold'} level={3}>
                     Аналитика
                 </Title>
