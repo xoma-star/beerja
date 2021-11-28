@@ -17,12 +17,13 @@ import {
     withPlatform,
     FixedLayout,
     Snackbar,
-    Avatar, PullToRefresh
+    Avatar,
+    PullToRefresh
 } from "@vkontakte/vkui";
 import {
     Icon16Done, Icon16ErrorCircleFill, Icon20CheckCircleFillGreen,
     Icon24CupOutline,
-    Icon24SartOutline,
+    Icon24SartOutline, Icon24UserOutline,
     Icon24WorkOutline,
 } from '@vkontakte/icons';
 import BalanceCards from "./Components/BalanceCards";
@@ -39,6 +40,7 @@ import ErrorBlock from "./Components/ErrorBlock";
 import StockGroup from "./Components/StockGroup";
 import MarketBlock from "./Components/MarketBlock";
 import MarketSections from "./Functions/MarketSections";
+import RatingPanel from "./Components/RatingPanel";
 
 const unique = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -69,7 +71,9 @@ class App extends React.Component{
             commodities: {},
             errors: [],
             bonusLoading: false,
-            fetching: false
+            fetching: false,
+            balance: 0,
+            access_token: null
         }
         this.api_key = 'CKB1ZOZN09CF26RO6LPJ';
         this.api_secret = 'cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao';
@@ -98,7 +102,11 @@ class App extends React.Component{
             }
         });
         bridge.send('VKWebAppInit').then(() =>{
-
+            bridge.send("VKWebAppGetAuthToken", {"app_id": 8000440, "scope": "friends,status"}).then(
+                v => {
+                    this.setState({access_token: v.access_token})
+                }
+            )
         });
         this.marketOpen();
         await this.userDataUpdatesSubscribe();
@@ -262,7 +270,9 @@ class App extends React.Component{
                         loading: false,
                         lastBonusTaken: e.data().lastBonusTaken,
                         marginable: e.data().marginable,
-                        commodities: e.data().commodities
+                        commodities: e.data().commodities,
+                        tier: e.data().tier,
+                        balance: e.data().balance
                     })
                 );
             }
@@ -341,7 +351,8 @@ class App extends React.Component{
                 fs.collection('users').doc('1').update({
                     lastBonusTaken: new Date().getTime(),
                     currencies: a,
-                    deals: b
+                    deals: b,
+                    balance: this.state.balance + bonus
                 }).then(() => this.setState({
                     snackBar: <Snackbar
                         onClose={() => this.setState({snackBar: null})}
@@ -654,6 +665,11 @@ class App extends React.Component{
                                 <div style={{height: 48}}/>
                             </Panel>
                             <Panel id={"rating"}>
+                                <RatingPanel token={this.state.access_token} tier={this.state.tier}/>
+                                <div style={{height: 48}}/>
+                            </Panel>
+                            <Panel id={"profile"}>
+                                <div style={{height: 48}}/>
                             </Panel>
                         </View>
                     </SplitLayout>
@@ -669,6 +685,9 @@ class App extends React.Component{
                                 </TabbarItem>
                                 <TabbarItem selected={this.state.activePanel === "rating"} id={"rating"} onClick={() => this.setActivePanel("rating")} text={"Рейтинг"}>
                                     <Icon24CupOutline/>
+                                </TabbarItem>
+                                <TabbarItem selected={this.state.activePanel === "profile"} id={"profile"} onClick={() => this.setActivePanel("profile")} text={"Профиль"}>
+                                    <Icon24UserOutline/>
                                 </TabbarItem>
                             </Tabbar>
                         }/>
