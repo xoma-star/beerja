@@ -134,19 +134,19 @@ const Modal = (p) => {
                 switch (p.t.ticker) {
                     case 'RUBCHF':
                         y.chf.count += lots * a * - 1 * input;
-                        y.chf.avgPrice = (p.c.chf.avgPrice * p.c.chf.count + lots * input * p.t.price) / (p.c.chf.count + lots * input);
+                        y.chf.avgPrice = (p.c.chf.avgPrice * Math.abs(p.c.chf.count) + lots * input * p.t.price) / (Math.abs(p.c.chf.count) + lots * input);
                         break;
                     case 'RUBEUR':
                         y.eur.count += lots * a * - 1 * input;
-                        y.eur.avgPrice = (p.c.eur.avgPrice * p.c.eur.count + lots * input * p.t.price) / (p.c.eur.count + lots * input);
+                        y.eur.avgPrice = (p.c.eur.avgPrice * Math.abs(p.c.eur.count) + lots * input * p.t.price) / (Math.abs(p.c.eur.count) + lots * input);
                         break;
                     case 'RUBUSD':
                         y.usd.count += lots * a * - 1 * input;
-                        y.usd.avgPrice = (p.c.usd.avgPrice * p.c.usd.count + lots * input * p.t.price) / (p.c.usd.count + lots * input);
+                        y.usd.avgPrice = (p.c.usd.avgPrice * Math.abs(p.c.usd.count) + lots * input * p.t.price) / (Math.abs(p.c.usd.count) + lots * input);
                         break;
                     case 'RUBGBP':
                         y.gbp.count += lots * a * - 1 * input;
-                        y.gbp.avgPrice = (p.c.gbp.avgPrice * p.c.gbp.count + lots * input * p.t.price) / (p.c.gbp.count + lots * input);
+                        y.gbp.avgPrice = (p.c.gbp.avgPrice * Math.abs(p.c.gbp.count) + lots * input * p.t.price) / (Math.abs(p.c.gbp.count) + lots * input);
                         break;
                     default:
                         return
@@ -158,7 +158,7 @@ const Modal = (p) => {
                 let ticker = p.t.ticker.substr(1);
                 if(z[ticker]){
                     z[ticker] = {
-                        avgPrice: (z[ticker].avgPrice * z[ticker].count + lots * input * p.t.price) / (z[ticker].count + lots * input),
+                        avgPrice: (z[ticker].avgPrice * Math.abs(z[ticker].count) + lots * input * p.t.price) / (Math.abs(z[ticker].count) + lots * input),
                         count: z[ticker].count + lots * input * a * -1
                     }
                     if(z[ticker].count === 0){
@@ -173,16 +173,17 @@ const Modal = (p) => {
                 }
             }
             else{
-                // if(type === 'sell'){
-                //     y.usd.avgPrice = (p.c.usd.avgPrice * p.c.usd.count + input * p.t.price * p.q.usd.val) / (p.c.usd.count + input * p.t.price);
-                // }
+                // y.usd.avgPrice = (p.c.usd.avgPrice * p.c.usd.count + lots * input * p.t.price * p.q.usd.val) / (p.c.usd.count + lots * input * p.t.price);
+                if(y.usd.avgPrice === 0){
+                    y.usd.avgPrice = p.q.usd.val;
+                }
                 y.usd.count += lots * input * p.t.price * (a - commission);
                 let i = 0;
                 for (const v of x) {
                     if(v.ticker === p.t.ticker){
                         c = {
                             ticker: v.ticker,
-                            avgPrice: (v.avgPrice * v.count + input * p.t.price * lots) / (v.count + input * lots),
+                            avgPrice: (v.avgPrice * Math.abs(v.count) + input * p.t.price * lots) / (Math.abs(v.count) + input * lots),
                             count: v.count + input * a * -1 * lots
                         }
                         x[i] = c;
@@ -224,7 +225,7 @@ const Modal = (p) => {
                 commission: commission
             })
             setLoading(true);
-            fs.collection('users').doc('1').update({
+            fs.collection('users').doc(p.vkuid).update({
                 portfolio: x,
                 currencies: p.c,
                 deals: p.h,

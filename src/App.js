@@ -18,7 +18,7 @@ import {
     FixedLayout,
     Snackbar,
     Avatar,
-    PullToRefresh
+    PullToRefresh, Root
 } from "@vkontakte/vkui";
 import {
     Icon16Done, Icon16ErrorCircleFill, Icon20CheckCircleFillGreen,
@@ -41,6 +41,7 @@ import StockGroup from "./Components/StockGroup";
 import MarketBlock from "./Components/MarketBlock";
 import MarketSections from "./Functions/MarketSections";
 import RatingPanel from "./Components/RatingPanel";
+import ProfilePanel from "./Components/ProfilePanel";
 
 const unique = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -48,8 +49,11 @@ const unique = (value, index, self) => {
 
 class App extends React.Component{
     constructor(props) {
+        const qs = require('querystring');
+        const urlParams = qs.parse(window.location.search.substr(1));
         super(props);
         this.state = {
+            vk_user_id: urlParams.vk_user_id.toString(),
             activePanel: 'portfolio',
             activeStock: {ticker: ''},
             portfolio: [],
@@ -73,7 +77,11 @@ class App extends React.Component{
             bonusLoading: false,
             fetching: false,
             balance: 0,
-            access_token: null
+            access_token: null,
+            publicProfile: true,
+            isRatingParticipant: true,
+            observerProfile: 0,
+            activeView: 'main'
         }
         this.api_key = 'CKB1ZOZN09CF26RO6LPJ';
         this.api_secret = 'cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao';
@@ -91,6 +99,7 @@ class App extends React.Component{
         this.getPrice = this.getPrice.bind(this);
         this.refresh = this.refresh.bind(this);
         this.openAnal = this.openAnal.bind(this);
+        this.setActiveView = this.setActiveView.bind(this);
     }
     async componentDidMount() {
         await this.connectAlpacaWSS();
@@ -260,7 +269,7 @@ class App extends React.Component{
         //return await Promise.resolve(a);
     }
     userDataUpdatesSubscribe(){
-        fs.collection('users').doc('1').onSnapshot(
+        fs.collection('users').doc(this.state.vk_user_id).onSnapshot(
             e => {
                 this.portfolioInit(e.data().portfolio).then(v =>
                     this.setState({
@@ -272,7 +281,9 @@ class App extends React.Component{
                         marginable: e.data().marginable,
                         commodities: e.data().commodities,
                         tier: e.data().tier,
-                        balance: e.data().balance
+                        balance: e.data().balance,
+                        isRatingParticipant: e.data().clearing,
+                        publicProfile: e.data().publicProfile
                     })
                 );
             }
@@ -348,7 +359,7 @@ class App extends React.Component{
                     count: bonus,
                     date: new Date()
                 });
-                fs.collection('users').doc('1').update({
+                fs.collection('users').doc(this.state.vk_user_id).update({
                     lastBonusTaken: new Date().getTime(),
                     currencies: a,
                     deals: b,
@@ -496,6 +507,13 @@ class App extends React.Component{
     setActiveModal(modal, data){
         this.setState({activeModal: modal, activeStock: data});
     }
+    setActiveView(view, data){
+        let a = {activeView: view}
+        for(const v of Object.keys(data)){
+            a[v] = data[v]
+        }
+        this.setState(a);
+    }
     dealComplete(type, count, price, ticker){
         this.setState({snackBar:
                 <Snackbar
@@ -518,7 +536,7 @@ class App extends React.Component{
             })
             return
         }
-        fs.collection('users').doc('1').update({
+        fs.collection('users').doc(this.state.vk_user_id).update({
             marginable: !this.state.marginable
         });
     }
@@ -527,7 +545,7 @@ class App extends React.Component{
         await this.getCurrencyData();
         await this.getCommodities();
         if(!this.state.AlpacaConnected){
-            await fs.collection('users').doc('1').get().then(
+            await fs.collection('users').doc(this.state.vk_user_id).get().then(
                 e => {
                     this.portfolioInit(e.data().portfolio).then(v =>
                         this.setState({
@@ -568,6 +586,7 @@ class App extends React.Component{
                 <AppRoot>
                     <SplitLayout modal={
                         <Modal
+                            vkuid={this.state.vk_user_id}
                             v={this.state.activeModal}
                             s={this.setActiveModal}
                             t={this.state.activeStock}
@@ -583,99 +602,124 @@ class App extends React.Component{
                             scheme={this.state.scheme}
                         />
                     }>
-                        <View activePanel={this.state.activePanel}>
-                            <Panel id={"portfolio"}>
-                                <PullToRefresh onRefresh={this.refresh} isFetching={this.state.fetching}>
-                                    <BalanceCards
-                                        exchangeRates={this.state.currencies}
-                                        portfolio={this.state.portfolio}
-                                        cash={this.state.cash}
-                                        userValue={this.userValue()}
+                        <Root activeView={this.state.activeView}>
+                            <View id={'profile'} activePanel={'profile'}>
+                                <Panel id={'profile'}>
+                                    <ProfilePanel
+                                        back={() => this.setActiveView('main', {observerProfile: null})}
+                                        token={this.state.access_token}
+                                        vkuid={this.state.observerProfile}
+                                        isObserver={true}
                                     />
-                                    <ErrorBlock e={this.state.errors}/>
-                                    <MarginCards
-                                        u={this.userValue()}
-                                        m={this.changeMarginStatus}
-                                        e={this.state.marginable}
+                                </Panel>
+                            </View>
+                            <View id={'main'} activePanel={this.state.activePanel}>
+                                <Panel id={"portfolio"}>
+                                    <PullToRefresh onRefresh={this.refresh} isFetching={this.state.fetching}>
+                                        <BalanceCards
+                                            exchangeRates={this.state.currencies}
+                                            portfolio={this.state.portfolio}
+                                            cash={this.state.cash}
+                                            userValue={this.userValue()}
+                                        />
+                                        <ErrorBlock e={this.state.errors}/>
+                                        <MarginCards
+                                            u={this.userValue()}
+                                            m={this.changeMarginStatus}
+                                            e={this.state.marginable}
+                                        />
+                                        <OperationCards
+                                            od={this.openDeals}
+                                            l={this.state.bonusLoading}
+                                            tdb={this.takeDailyBonus}
+                                            oa={this.openAnal}
+                                            b={this.state.lastBonusTaken}/>
+                                        <StockGroup
+                                            isPortfolio={true}
+                                            portfolio={this.state.portfolio}
+                                            stocksMarket={this.state.stocksMarket}
+                                            setActiveModal={this.setActiveModal}
+                                            setActivePanel={this.setActivePanel}
+                                            loading={this.state.loading}
+                                        />
+                                        <CurrenciesGroup
+                                            s={this.setActiveModal}
+                                            cash={this.state.cash}
+                                            rates={this.state.currencies}
+                                            p={true}
+                                        />
+                                        <CommoditiesGroup
+                                            s={this.setActiveModal}
+                                            commodities={this.state.commoditiesAvailable}
+                                            now={this.state.commoditiesAvailableNow}
+                                            portfolio={this.state.commodities}
+                                            p={true}
+                                        />
+                                    </PullToRefresh>
+                                    <div style={{height: 48}}/>
+                                </Panel>
+                                <Panel id={"quotes"}>
+                                    <PullToRefresh onRefresh={this.refresh} isFetching={this.state.fetching}>
+                                        <MarketBlock m={this.state.isMarketOpen}/>
+                                        <CurrenciesGroup
+                                            s={this.setActiveModal}
+                                            cash={this.state.cash}
+                                            rates={this.state.currencies}
+                                            p={false}
+                                        />
+                                        <StockGroup
+                                            isPortfolio={false}
+                                            portfolio={this.state.portfolio}
+                                            stocksMarket={this.state.stocksMarket}
+                                            setActiveModal={this.setActiveModal}
+                                            setActivePanel={this.setActivePanel}
+                                            loading={this.state.loading}
+                                        />
+                                        <CommoditiesGroup
+                                            s={this.setActiveModal}
+                                            now={this.state.commoditiesAvailableNow}
+                                            commodities={this.state.commoditiesAvailable}
+                                            portfolio={this.state.commodities}
+                                            p={false}
+                                        />
+                                        <Group header={<Header mode={"secondary"}>на следующей неделе</Header>}>
+                                            <CardScroll>
+                                                {
+                                                    this.state.stocksAvailableNextWeek.map((v,i) => {
+                                                        return <StockCardHorizontal key={'horizontalcard'+i} v={v}/>
+                                                    })
+                                                }
+                                            </CardScroll>
+                                        </Group>
+                                    </PullToRefresh>
+                                    <div style={{height: 48}}/>
+                                </Panel>
+                                <Panel id={"rating"}>
+                                    <RatingPanel
+                                        token={this.state.access_token}
+                                        vkuid={this.state.vk_user_id}
+                                        tier={this.state.tier}
+                                        openProfile={this.setActiveView}
                                     />
-                                    <OperationCards
-                                        od={this.openDeals}
-                                        l={this.state.bonusLoading}
-                                        tdb={this.takeDailyBonus}
-                                        oa={this.openAnal}
-                                        b={this.state.lastBonusTaken}/>
-                                    <StockGroup
-                                        isPortfolio={true}
-                                        portfolio={this.state.portfolio}
-                                        stocksMarket={this.state.stocksMarket}
-                                        setActiveModal={this.setActiveModal}
-                                        setActivePanel={this.setActivePanel}
-                                        loading={this.state.loading}
+                                    <div style={{height: 48}}/>
+                                </Panel>
+                                <Panel id={"profile"}>
+                                    <ProfilePanel
+                                        token={this.state.access_token}
+                                        vkuid={this.state.vk_user_id}
+                                        settings={{
+                                            publicProfile: this.state.publicProfile,
+                                            isRatingParticipant: this.state.isRatingParticipant
+                                        }}
                                     />
-                                    <CurrenciesGroup
-                                        s={this.setActiveModal}
-                                        cash={this.state.cash}
-                                        rates={this.state.currencies}
-                                        p={true}
-                                    />
-                                    <CommoditiesGroup
-                                        s={this.setActiveModal}
-                                        commodities={this.state.commoditiesAvailable}
-                                        now={this.state.commoditiesAvailableNow}
-                                        portfolio={this.state.commodities}
-                                        p={true}
-                                    />
-                                </PullToRefresh>
-                                <div style={{height: 48}}/>
-                            </Panel>
-                            <Panel id={"quotes"}>
-                                <PullToRefresh onRefresh={this.refresh} isFetching={this.state.fetching}>
-                                    <MarketBlock m={this.state.isMarketOpen}/>
-                                    <CurrenciesGroup
-                                        s={this.setActiveModal}
-                                        cash={this.state.cash}
-                                        rates={this.state.currencies}
-                                        p={false}
-                                    />
-                                    <StockGroup
-                                        isPortfolio={false}
-                                        portfolio={this.state.portfolio}
-                                        stocksMarket={this.state.stocksMarket}
-                                        setActiveModal={this.setActiveModal}
-                                        setActivePanel={this.setActivePanel}
-                                        loading={this.state.loading}
-                                    />
-                                    <CommoditiesGroup
-                                        s={this.setActiveModal}
-                                        now={this.state.commoditiesAvailableNow}
-                                        commodities={this.state.commoditiesAvailable}
-                                        portfolio={this.state.commodities}
-                                        p={false}
-                                    />
-                                    <Group header={<Header mode={"secondary"}>на следующей неделе</Header>}>
-                                        <CardScroll>
-                                            {
-                                                this.state.stocksAvailableNextWeek.map((v,i) => {
-                                                    return <StockCardHorizontal key={'horizontalcard'+i} v={v}/>
-                                                })
-                                            }
-                                        </CardScroll>
-                                    </Group>
-                                </PullToRefresh>
-                                <div style={{height: 48}}/>
-                            </Panel>
-                            <Panel id={"rating"}>
-                                <RatingPanel token={this.state.access_token} tier={this.state.tier}/>
-                                <div style={{height: 48}}/>
-                            </Panel>
-                            <Panel id={"profile"}>
-                                <div style={{height: 48}}/>
-                            </Panel>
-                        </View>
+                                    <div style={{height: 48}}/>
+                                </Panel>
+                            </View>
+                        </Root>
                     </SplitLayout>
                     <FixedLayout>
                         {this.state.snackBar}
-                        <Epic activeStory={this.state.activePanel} tabbar={
+                        <Epic style={this.state.activeView === 'profile' ? {display: 'none'} : {}} activeStory={this.state.activePanel} tabbar={
                             <Tabbar>
                                 <TabbarItem selected={this.state.activePanel === "portfolio"} id={"portfolio"} onClick={() => this.setActivePanel("portfolio")} text={"Портфель"}>
                                     <Icon24WorkOutline/>

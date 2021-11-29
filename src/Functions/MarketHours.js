@@ -1,6 +1,6 @@
 const MarketHours = {
     pre: {
-        open: [6,30],
+        open: [4,0],
         close: [9,30]
     },
     open: {

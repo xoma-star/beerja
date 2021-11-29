@@ -73,7 +73,7 @@ class RatingPanel extends React.Component {
             }
             for(let i = 0; i < a.length; i++) {
                 b.response.push({
-                    photo_200: 'https://sun2.ufanet.userapi.com/s/v1/ig2/hPDFoFDXZ4DqR3bMSya-_NbfllYL-BV_ZjW5ImB8NkTObUnD2qxFv_ytBRi5FmxPJIMfN9RxeK-ujqRkR37f6pYo.jpg?size=200x200&quality=95&crop=17,0,705,705&ava=1',
+                    photo_200: 'https://vk.com/images/deactivated_200.png',
                     first_name: 'Александр',
                     last_name: 'Сиротин',
                     id: a[i]
@@ -137,10 +137,12 @@ class RatingPanel extends React.Component {
                                 </Caption>
                             </div>
                         }
-                        return <div>
+                        return <div key={k.id}>
                             {a}
                             {b}
-                            <Cell description={(i+1)+' место'} key={k.id}
+                            <Cell
+                                  onClick={() => this.props.openProfile('profile', {observerProfile: ud.id})}
+                                  description={(i+1)+' место'}
                                   before={ud ? <Avatar src={ud.photo_200}/> : <Spinner/>}
                                   after={<div style={{textAlign: "right"}}
                                   >
