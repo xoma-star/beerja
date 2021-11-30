@@ -220,6 +220,9 @@ class App extends React.Component{
             }
         }
     }
+    async tapticSend(){
+        await bridge.send('VKWebAppTapticImpactOccurred', {style: 'light'})
+    }
     async getCommodities(){
         let a;
         let b;
@@ -502,6 +505,7 @@ class App extends React.Component{
         return await Promise.resolve(a);
     }
     setActivePanel(panel){
+        this.tapticSend();
         this.setState({activePanel: panel});
     }
     setActiveModal(modal, data){
@@ -512,6 +516,7 @@ class App extends React.Component{
         for(const v of Object.keys(data)){
             a[v] = data[v]
         }
+        this.tapticSend()
         this.setState(a);
     }
     dealComplete(type, count, price, ticker){
@@ -723,10 +728,20 @@ class App extends React.Component{
                         {this.state.snackBar}
                         <Epic style={this.state.activeView === 'profile' ? {display: 'none'} : {}} activeStory={this.state.activePanel} tabbar={
                             <Tabbar>
-                                <TabbarItem selected={this.state.activePanel === "portfolio"} id={"portfolio"} onClick={() => this.setActivePanel("portfolio")} text={"Портфель"}>
+                                <TabbarItem
+                                    selected={this.state.activePanel === "portfolio"}
+                                    id={"portfolio"}
+                                    onClick={
+                                        () => {this.setActivePanel("portfolio");}
+                                    }
+                                    text={"Портфель"}>
                                     <Icon24WorkOutline/>
                                 </TabbarItem>
-                                <TabbarItem selected={this.state.activePanel === "quotes"} id={"quotes"} onClick={() => this.setActivePanel("quotes")} text={"Маркет"}>
+                                <TabbarItem
+                                    selected={this.state.activePanel === "quotes"}
+                                    id={"quotes"}
+                                    onClick={() => this.setActivePanel("quotes")}
+                                    text={"Маркет"}>
                                     <Icon24SartOutline/>
                                 </TabbarItem>
                                 <TabbarItem selected={this.state.activePanel === "rating"} id={"rating"} onClick={() => this.setActivePanel("rating")} text={"Рейтинг"}>

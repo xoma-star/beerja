@@ -116,9 +116,6 @@ class RatingPanel extends React.Component {
                     style={{textAlign: 'center', marginTop: 8}}
                 >Просматривается: {b.name}</Title> : ''}
             </Card>
-            <Card>
-
-            </Card>
             <Card style={{paddingTop: 10, paddingBottom: 10, marginBottom: 10}}>
                 <List>
                     {this.state.rates[this.state.activeTier] ?
@@ -146,11 +143,14 @@ class RatingPanel extends React.Component {
                             {a}
                             {b}
                             <Cell
-                                  onClick={() => this.props.openProfile('profile', {observerProfile: ud.id, observerGain: k.gainPercents, observerRating: i+1})}
+                                  style={k.id === Number(this.props.vkuid) ? {background: 'var(--background_text_highlighted)'} : {}}
+                                  onClick={() => {
+                                      this.props.openProfile('profile', {observerProfile: ud.id, observerGain: k.gainPercents, observerRating: i+1})
+                                      bridge.send('VKWebAppTapticImpactOccurred', {style: 'light'})
+                                  }}
                                   description={(i+1)+' место'}
                                   before={ud ? <Avatar src={ud.photo_200}/> : <Spinner/>}
-                                  after={<div style={{textAlign: "right"}}
-                                  >
+                                  after={<div style={{textAlign: "right"}}>
                                       <Title
                                           style={{color: 'var(--header_text)'}}
                                           level={3}
