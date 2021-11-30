@@ -610,6 +610,8 @@ class App extends React.Component{
                                         token={this.state.access_token}
                                         vkuid={this.state.observerProfile}
                                         isObserver={true}
+                                        observerGain={this.state.observerGain}
+                                        observerPlace={this.state.observerRating}
                                     />
                                 </Panel>
                             </View>

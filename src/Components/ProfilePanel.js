@@ -11,11 +11,11 @@ import {
     Switch,
     Title
 } from "@vkontakte/vkui";
-import OperationCards from "./OperationCards";
 import fs from "../Functions/Firebase";
 import bridge from "@vkontakte/vk-bridge";
 import {Icon28IncognitoOutline, Icon56LockOutline} from "@vkontakte/icons";
 import StockCardHorizontal from "./StockCardHorizontal";
+import ProfileCards from "../ProfileCards";
 
 class ProfilePanel extends React.Component {
     constructor(props) {
@@ -75,10 +75,10 @@ class ProfilePanel extends React.Component {
                 <Avatar size={96} style={{marginBottom: 10}} src={this.state.userData.photo_200}/>
                 <Title weight={'semibold'} level={1}>{this.state.userData.last_name ? `${this.state.userData.first_name} ${this.state.userData.last_name.substr(0, 1)}.` : ''}</Title>
             </Gradient>
-            {this.props.isObserver && !this.state.firestore.publicProfile ? <Placeholder
+            {this.props.isObserver ? (!this.state.firestore.publicProfile ? <Placeholder
                 icon={<Icon56LockOutline/>}
                 header={'Закрытый профиль'}>Пользователь предпочел скрыть статистику</Placeholder> :
-                <OperationCards/>
+                <ProfileCards gain={this.props.observerGain} deals={this.state.firestore.deals.length} place={this.props.observerPlace}/>) : ''
             }
             {!this.props.isObserver ? <Group header={<Header mode={'secondary'}>настройки</Header>}>
                 <Cell

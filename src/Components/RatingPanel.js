@@ -79,7 +79,7 @@ class RatingPanel extends React.Component {
                     id: a[i]
                 })
             }
-            this.setState({rates: e.data(), users: await b.response})
+            this.setState({rates: e.data(), users: await b.response, activeTier: this.props.tier})
         })
     }
     componentWillUnmount() {
@@ -91,6 +91,11 @@ class RatingPanel extends React.Component {
         return 0
     }
     render() {
+        let a = this.tiers.find(x => x.id === this.props.tier)
+        let b = this.tiers.find(x => x.id === this.state.activeTier)
+        if(typeof(a) === 'undefined' || typeof(b) === 'undefined'){
+            return <Spinner/>
+        }
         return <CardGrid style={{marginTop: 12}} size={"l"}>
             <Card style={{paddingTop: 20, paddingBottom: 20}}>
                 <CardScroll>
@@ -104,12 +109,12 @@ class RatingPanel extends React.Component {
                         </HorizontalCell>
                     })}
                 </CardScroll>
-                <Title style={{textAlign: 'center'}} weight={'bold'} level={1}>{this.tiers.find(x => x.id === this.props.tier).name} разряд</Title>
+                <Title style={{textAlign: 'center'}} weight={'bold'} level={1}>{a.name} разряд</Title>
                 {this.state.activeTier !== this.props.tier ? <Title
                     weight={'regular'}
                     level={3}
                     style={{textAlign: 'center', marginTop: 8}}
-                >Просматривается: {this.tiers.find(x => x.id === this.state.activeTier).name}</Title> : ''}
+                >Просматривается: {b.name}</Title> : ''}
             </Card>
             <Card>
 
@@ -141,7 +146,7 @@ class RatingPanel extends React.Component {
                             {a}
                             {b}
                             <Cell
-                                  onClick={() => this.props.openProfile('profile', {observerProfile: ud.id})}
+                                  onClick={() => this.props.openProfile('profile', {observerProfile: ud.id, observerGain: k.gainPercents, observerRating: i+1})}
                                   description={(i+1)+' место'}
                                   before={ud ? <Avatar src={ud.photo_200}/> : <Spinner/>}
                                   after={<div style={{textAlign: "right"}}
