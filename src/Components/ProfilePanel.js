@@ -15,7 +15,7 @@ import fs from "../Functions/Firebase";
 import bridge from "@vkontakte/vk-bridge";
 import {Icon28IncognitoOutline, Icon56LockOutline} from "@vkontakte/icons";
 import StockCardHorizontal from "./StockCardHorizontal";
-import ProfileCards from "../ProfileCards";
+import ProfileCards from "./ProfileCards";
 
 class ProfilePanel extends React.Component {
     constructor(props) {

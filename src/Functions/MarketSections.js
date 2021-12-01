@@ -39,7 +39,7 @@ const MarketSections = () => {
         cl1.setHours(23);
         cl1.setMinutes(59);
         cl1.setSeconds(59);
-        nowProg =  (cl1.getTime() - now.getTime()) / (cl1.getTime() - post.getTime());
+        nowProg =  1 - (cl1.getTime() - now.getTime()) / (cl1.getTime() - close.getTime());
     }
     if(now.getTime() <= pre.getTime()){
         nowSect = 'close1';
@@ -81,7 +81,12 @@ const MarketSections = () => {
         close: close,
         now: nowSect,
         progress: values,
-        isDayOff: dayOff
+        isDayOff: dayOff,
+        isDaySpecial: false,
+        workingHours: {
+            start: MarketHours.pre.open,
+            end: MarketHours.post.close
+        }
     }
 }
 

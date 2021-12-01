@@ -43,7 +43,13 @@ const MarketBlock = (p) => {
                 element: 'var(--dynamic_gray)'
             },
             className: 'close'
-        },
+        }
+    }
+    const add0 = (a) => {
+        if(a < 10){
+            return '0' + a
+        }
+        return a
     }
     let a = MarketSections();
     let values = a.progress;
@@ -65,6 +71,21 @@ const MarketBlock = (p) => {
                 <Progress className={'marketProgress marketProgressPost'} value={values.post} style={{width: '20%'}}/>
                 <Progress className={'marketProgress marketProgressClose'} value={values.close2} style={{width: '20%', marginRight: 0}}/>
             </div>
+            <div style={{display: 'flex', color: 'var(--activity_indicator_tint)'}}>
+                <Caption style={{left: '17%', position: 'relative'}} weight={'regular'} level={3}>
+                    {`${add0(a.workingHours.start[0])}:${add0(a.workingHours.start[1])}`}
+                </Caption>
+                <Caption style={{left: '68%', position: 'relative'}} weight={'regular'} level={3}>
+                    {`${add0(a.workingHours.end[0])}:${add0(a.workingHours.end[1])}`}
+                </Caption>
+            </div>
+            <Caption
+                weight={'regular'}
+                level={1}
+                style={{textAlign: 'center', color: 'var(--activity_indicator_tint)'}}
+            >
+                Часовой пояс биржи: Нью-Йорк (UTC -5)
+            </Caption>
             <List style={{marginBottom: 12}}>
                 {Object.keys(states).map(v => {
                     if(v === 'close2'){

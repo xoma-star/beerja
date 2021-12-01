@@ -320,7 +320,7 @@ const Modal = (p) => {
         stockModal = <div>
             {Description()}
             <FormLayout>
-                {p.m === 'close1' || p.m === 'close2' ? <Button disabled stretched size={'l'} mode={'secondary'}>Биржа закрыта</Button> :
+                {p.m === 'close1' || p.m === 'close2' || isNaN(p.t.price) ? <Button disabled stretched size={'l'} mode={'secondary'}>Биржа закрыта</Button> :
                     type === null ?
                         SellBuyButtons()
                         :

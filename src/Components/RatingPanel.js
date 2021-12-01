@@ -146,7 +146,6 @@ class RatingPanel extends React.Component {
                                   style={k.id === Number(this.props.vkuid) ? {background: 'var(--background_text_highlighted)'} : {}}
                                   onClick={() => {
                                       this.props.openProfile('profile', {observerProfile: ud.id, observerGain: k.gainPercents, observerRating: i+1})
-                                      bridge.send('VKWebAppTapticImpactOccurred', {style: 'light'})
                                   }}
                                   description={(i+1)+' место'}
                                   before={ud ? <Avatar src={ud.photo_200}/> : <Spinner/>}
