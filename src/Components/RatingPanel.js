@@ -20,32 +20,32 @@ class RatingPanel extends React.Component {
             {
                 name: 'Бронзовый',
                 id: 'bronze',
-                color: '#cd7f32'
+                color: 'linear-gradient(45deg, #d1913c, #ffd194)'
             },
             {
                 name: 'Серебрянный',
                 id: 'silver',
-                color: '#c0c0c0'
+                color: 'linear-gradient(225deg, #bdc3c7, #2c3e50)'
             },
             {
                 name: 'Золотой',
                 id: 'gold',
-                color: '#FFD700'
+                color: 'linear-gradient(225deg, #fceabb, #f8b500)'
             },
             {
                 name: 'Сапфировый',
                 id: 'sapphire',
-                color: '#0f52ba'
+                color: 'linear-gradient(225deg, #0575e6, #021b79)'
             },
             {
                 name: 'Рубиновый',
                 id: 'ruby',
-                color: '#E0115F'
+                color: 'linear-gradient(225deg, #bc4e9c, #f80759)'
             },
             {
                 name: 'Аметистовый',
                 id: 'amethyst',
-                color: '#9966cc'
+                color: 'linear-gradient(45deg, #a770ef, #cf8bf3, #fdb99b)'
             }
         ]
     }
@@ -123,7 +123,7 @@ class RatingPanel extends React.Component {
                         this.state.rates[this.state.activeTier].map((k, i) => {
                         let ud = this.state.users.find(x => x.id === k.id);
                         let a, b;
-                        if(i === 5){
+                        if(i === 5 || i === this.state.rates[this.state.activeTier].length){
                             a = <div>
                                 <Caption style={{color: 'var(--dynamic_green)', textAlign: 'center'}} weight={'regular'} level={1}>
                                     Переходят в следующий разряд
@@ -131,7 +131,7 @@ class RatingPanel extends React.Component {
                                 <Separator style={{marginTop: 4, height: 3, background: 'var(--dynamic_green)'}}/>
                             </div>
                         }
-                        if(i === this.state.rates[this.state.activeTier].length - 5){
+                        if(i === this.state.rates[this.state.activeTier].length - 5 && this.state.rates[this.state.activeTier].length > 5 && this.state.activeTier !== 'bronze'){
                             b = <div>
                                 <Separator style={{marginBottom: 4, height: 3, background: 'var(--dynamic_red)'}}/>
                                 <Caption style={{color: 'var(--dynamic_red)', textAlign: 'center'}} weight={'regular'} level={1}>
@@ -143,7 +143,9 @@ class RatingPanel extends React.Component {
                             {a}
                             {b}
                             <Cell
-                                  style={k.id === Number(this.props.vkuid) ? {background: 'var(--background_text_highlighted)'} : {}}
+                                  style={k.id === Number(this.props.vkuid) ?
+                                      {background: 'linear-gradient(16deg, #2d81e038, #ffffff00)'} :
+                                      {}}
                                   onClick={() => {
                                       this.props.openProfile('profile', {observerProfile: ud.id, observerGain: k.gainPercents, observerRating: i+1})
                                   }}

@@ -13,6 +13,9 @@ const MarginCards = (p) => {
         <Cell disabled after={ruFormat(p.u.rubValueNaked)}>
             Непокрытые позиции
         </Cell>
+        <Cell disabled after={ruFormat(p.u.dailyCharge)}>
+            Обслуживание в сутки
+        </Cell>
         <Cell disabled after={'1:'+p.u.leverage}>
             Кредитное плечо
         </Cell>

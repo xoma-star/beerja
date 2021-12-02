@@ -42,6 +42,8 @@ import MarketBlock from "./Components/MarketBlock";
 import MarketSections from "./Functions/MarketSections";
 import RatingPanel from "./Components/RatingPanel";
 import ProfilePanel from "./Components/ProfilePanel";
+import GreetingsBanner from "./Components/GreetingsBanner";
+import NewUserData from "./Functions/NewUserData";
 
 const unique = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -81,7 +83,8 @@ class App extends React.Component{
             publicProfile: true,
             isRatingParticipant: true,
             observerProfile: 0,
-            activeView: 'main'
+            activeView: 'main',
+            isNewUser: false
         }
         this.api_key = 'CKB1ZOZN09CF26RO6LPJ';
         this.api_secret = 'cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao';
@@ -158,6 +161,8 @@ class App extends React.Component{
     userValue(){
         const leverage = 5;
         const commission = 0.0005;
+        const dailyCommission = 0.0004;
+        let dailyCharge = 0;
         let c = this.state.currencies;
         if(!c.chf){
             return {}
@@ -205,6 +210,16 @@ class App extends React.Component{
         if(!naked){
             avail += rubValue;
         }
+        else{
+            if(naked > 5000){dailyCharge = 25}
+            if(naked > 50000){dailyCharge = 45}
+            if(naked > 100000){dailyCharge = 85}
+            if(naked > 250000){dailyCharge = 125}
+            if(naked > 500000){dailyCharge = 205}
+            if(naked > 1000000){dailyCharge = 380}
+            if(naked > 2000000){dailyCharge = 750}
+            if(naked > 5000000){dailyCharge = rubValue * dailyCommission}
+        }
         return {
             usdValue: usdValue,
             eurValue: eurValue,
@@ -217,11 +232,12 @@ class App extends React.Component{
                 stocks:  stocksVal / RUBUSD,
                 currencies: currenciesVal / RUBUSD,
                 commodities: commoditiesVal / RUBUSD
-            }
+            },
+            dailyCharge: dailyCharge
         }
     }
     async tapticSend(){
-        await bridge.send('VKWebAppTapticImpactOccurred', {style: 'light'})
+        // await bridge.send('VKWebAppTapticImpactOccurred', {style: 'light'})
     }
     async getCommodities(){
         let a;
@@ -274,21 +290,29 @@ class App extends React.Component{
     userDataUpdatesSubscribe(){
         fs.collection('users').doc(this.state.vk_user_id).onSnapshot(
             e => {
-                this.portfolioInit(e.data().portfolio).then(v =>
-                    this.setState({
-                        portfolio: v,
-                        cash: e.data().currencies,
-                        deals: e.data().deals,
-                        loading: false,
-                        lastBonusTaken: e.data().lastBonusTaken,
-                        marginable: e.data().marginable,
-                        commodities: e.data().commodities,
-                        tier: e.data().tier,
-                        balance: e.data().balance,
-                        isRatingParticipant: e.data().clearing,
-                        publicProfile: e.data().publicProfile
+                if(e.exists){
+                    this.portfolioInit(e.data().portfolio).then(v =>
+                        this.setState({
+                            portfolio: v,
+                            cash: e.data().currencies,
+                            deals: e.data().deals,
+                            loading: false,
+                            lastBonusTaken: e.data().lastBonusTaken,
+                            marginable: e.data().marginable,
+                            commodities: e.data().commodities,
+                            tier: e.data().tier,
+                            balance: e.data().balance,
+                            isRatingParticipant: e.data().clearing,
+                            publicProfile: e.data().publicProfile,
+                            isNewUser: e.data().isNewUser
+                        })
+                    );
+                }
+                else{
+                    fs.collection('users').doc(this.state.vk_user_id).set(NewUserData).then(() => {
+                        this.userDataUpdatesSubscribe()
                     })
-                );
+                }
             }
         );
     }
@@ -640,7 +664,12 @@ class App extends React.Component{
                                             l={this.state.bonusLoading}
                                             tdb={this.takeDailyBonus}
                                             oa={this.openAnal}
-                                            b={this.state.lastBonusTaken}/>
+                                            b={this.state.lastBonusTaken}
+                                        />
+                                        <GreetingsBanner
+                                            show={this.state.isNewUser}
+                                            vkuid={this.state.vk_user_id}
+                                        />
                                         <StockGroup
                                             isPortfolio={true}
                                             portfolio={this.state.portfolio}

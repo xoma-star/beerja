@@ -5,14 +5,13 @@ import {
     Icon28StopwatchOutline
 } from "@vkontakte/icons";
 import React from "react";
-import bridge from "@vkontakte/vk-bridge";
 
 const OperationCards = (p) => {
     return <Group header={<Header mode={'secondary'}>Операции</Header>}>
         <CardGrid size="s" style={{textAlign: 'center', color: 'var(--accent_alternate)'}}>
             <Card
                 style={{paddingTop: 14, paddingBottom: 14, textAlign: 'center'}}
-                onClick={async () => {p.od(); await bridge.send("VKWebAppTapticImpactOccurred", {"style": "light"});}}
+                onClick={p.od}
             >
                 <Title weight={'semibold'} level={3}>
                     История
@@ -20,12 +19,7 @@ const OperationCards = (p) => {
                 <Icon28MoneyHistoryBackwardOutline style={{display: 'inline-block', marginTop: 6}}/>
             </Card>
             <Card
-                onClick={async () =>
-                    {
-                        p.tdb();
-                        await bridge.send("VKWebAppTapticImpactOccurred", {"style": "light"});
-                    }
-                }
+                onClick={p.tdb}
                 style={{paddingTop: 14, paddingBottom: 14, textAlign: 'center'}}>
                 <Title weight={'semibold'} level={3}>
                     Бонус
@@ -34,12 +28,7 @@ const OperationCards = (p) => {
             </Card>
             <Card
                 style={{paddingTop: 14, paddingBottom: 14, textAlign: 'center'}}
-                onClick={async () =>
-                    {
-                        p.oa();
-                        await bridge.send("VKWebAppTapticImpactOccurred", {"style": "light"});
-                    }
-                }
+                onClick={p.oa}
             >
                 <Title weight={'semibold'} level={3}>
                     Аналитика

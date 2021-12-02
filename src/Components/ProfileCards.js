@@ -16,7 +16,7 @@ const ProfileCards = (p) => {
             mode={'shadow'}
             style={{paddingTop: 14, paddingBottom: 14, textAlign: 'center'}}
         >
-            <Avatar style={{background: 'var(--control_foreground)', display: 'inline-block', marginTop: 6}}>
+            <Avatar style={{background: 'linear-gradient(45deg, #9796f0, #fbc7d4)', display: 'inline-block', marginTop: 6}}>
                 {icon}
             </Avatar>
             <Title style={
@@ -26,7 +26,7 @@ const ProfileCards = (p) => {
                                 {color: 'var(--dynamic_green)'} :
                                 {color: 'var(--dynamic_red)'}
                         ) : {color: 'var(--dynamic_gray)'}
-            } weight={'semibold'} level={3}>{value}</Title>
+            } weight={'semibold'} level={3}>{!isColor ? value : `${ruFormat(p.gain)} %`}</Title>
             <Caption style={{color: 'var(--content_placeholder_text)'}} weight={'regular'} level={1}>{caption}</Caption>
         </Card>
     }
@@ -34,7 +34,7 @@ const ProfileCards = (p) => {
         <CardGrid size="s" style={{textAlign: 'center', color: 'var(--accent_alternate)'}}>
             {button(<Icon28CalendarOutline fill={'var(--background_content)'}/>, 'сделок за месяц', p.deals, false)}
             {button(<Icon24CupOutline width={28} height={28} fill={'var(--background_content)'}/>, 'место в разряде', p.place, false)}
-            {button(<Icon28GraphOutline fill={'var(--background_content)'}/>, 'доход за неделю', `${ruFormat(p.gain)} %`, true)}
+            {button(<Icon28GraphOutline fill={'var(--background_content)'}/>, 'доход за неделю', p.gain, true)}
         </CardGrid>
     </Group>
 }

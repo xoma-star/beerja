@@ -1,6 +1,6 @@
 import {Button, Group, Header, Placeholder, Spinner} from "@vkontakte/vkui";
 import StockCard from "./StockCard";
-import {Icon24SkullOutline, Icon56GestureOutline} from "@vkontakte/icons";
+import {Icon56GestureOutline} from "@vkontakte/icons";
 import React from "react";
 
 const StockGroup = (p) => {
@@ -28,7 +28,7 @@ const StockGroup = (p) => {
     }
     if(!p.isPortfolio && toMap.length === 0){
         return <Group header={<Header mode={'secondary'}>Акции</Header>}>
-            <Placeholder icon={<Icon24SkullOutline width={56} height={56}/>} header={<Header>Нет доступных предложений</Header>}/>
+            <Placeholder icon={<Spinner size={'medium'}/>} header={<Header>Загружаем</Header>}/>
         </Group>
     }
     return <Group

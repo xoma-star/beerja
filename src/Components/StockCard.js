@@ -1,7 +1,6 @@
 import React from "react";
 import {Avatar, Caption, Cell, Spinner, Title} from "@vkontakte/vkui";
 import StocksData from "../Functions/StocksData";
-import bridge from "@vkontakte/vk-bridge";
 
 const StockCard = (p) => {
     let price = parseFloat(p.price);
@@ -56,7 +55,7 @@ const StockCard = (p) => {
                 style={
                     ticker === 'RUBRUB' ? {display: 'none'} :
                         gain !== 0 ? (
-                            (gain > 0 && count > 0 && p.portfolio) || (!p.portfolio && gain > 0) ?
+                            (gain * count > 0 && p.portfolio) || (!p.portfolio && gain > 0) ?
                                 {color: 'var(--dynamic_green)'} :
                                 {color: 'var(--dynamic_red)'}
                         ) : {color: 'var(--dynamic_gray)'}
@@ -69,7 +68,6 @@ const StockCard = (p) => {
     }
     return <Cell
         onClick={() => {
-            bridge.send("VKWebAppTapticImpactOccurred", {"style": "light"});
             p.setActiveModal('stock', {
                 ticker: ticker,
                 name: stockData.name,
