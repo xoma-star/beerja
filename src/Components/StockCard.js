@@ -75,7 +75,8 @@ const StockCard = (p) => {
                 count: count,
                 avgPrice: avgPrice,
                 sign: sign,
-                description: stockData.description
+                description: stockData.description,
+                isOnMarket: p.isOnMarket
         })}}
         before={
             <Avatar

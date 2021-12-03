@@ -224,6 +224,7 @@ class App extends React.Component{
             if(naked > 1000000){dailyCharge = 380}
             if(naked > 2000000){dailyCharge = 750}
             if(naked > 5000000){dailyCharge = rubValue * dailyCommission}
+            dailyCharge = 0
         }
         return {
             usdValue: usdValue,
@@ -315,6 +316,13 @@ class App extends React.Component{
                                 isNewUser: e.data().isNewUser
                             })
                         );
+                        if(e.data().loginMessage){
+                            this.setActiveModal('card', {
+                                message: e.data().loginMessage.message,
+                                type: e.data().loginMessage.type,
+                                header: e.data().loginMessage.header
+                            });
+                        }
                     }
                     else{
                         fs.collection('users').doc(this.state.vk_user_id).set(NewUserData).then(() => {
@@ -363,8 +371,31 @@ class App extends React.Component{
             // return;
         }
     }
+    ruFormat(a){
+        if(a) return new Intl.NumberFormat('ru-RU').format(a.toFixed(2));
+        return 0
+    }
     takeDailyBonus(){
-        const bonus = 100000;
+        let bonus;
+        switch (this.state.tier){
+            case 'silver':
+                bonus = 250000;
+                break;
+            case 'gold':
+                bonus = 500000;
+                break;
+            case 'sapphire':
+                bonus = 1000000;
+                break;
+            case 'ruby':
+                bonus = 2000000;
+                break;
+            case 'amethyst':
+                bonus = 5000000;
+                break;
+            default:
+                bonus = 100000;
+        }
         if(new Date().getDate() === new Date(this.state.lastBonusTaken).getDate()){
             this.setState({
                 snackBar: <Snackbar
@@ -407,7 +438,7 @@ class App extends React.Component{
                         onClose={() => this.setState({snackBar: null})}
                         before={<Icon20CheckCircleFillGreen width={24} height={24} />}
                     >
-                        На счет зачислено 100 000 ₽
+                        На счет зачислено {this.ruFormat(bonus)} ₽
                     </Snackbar>,
                     bonusLoading: false
                 }))
@@ -617,7 +648,7 @@ class App extends React.Component{
         this.setState({fetching: false});
     }
     openAnal(){
-        this.setActiveModal('analytics', null);
+        this.setActiveModal('analytics', {});
     }
     render() {
         if(this.state.vk_user_id === 0) return ''
@@ -628,6 +659,7 @@ class App extends React.Component{
                     <SplitLayout modal={
                         <Modal
                             vkuid={this.state.vk_user_id}
+                            panel={this.setActivePanel}
                             v={this.state.activeModal}
                             s={this.setActiveModal}
                             t={this.state.activeStock}

@@ -7,6 +7,7 @@ const StockGroup = (p) => {
     let portfolio = p.portfolio;
     let stocksMarket = p.stocksMarket;
     let toMap;
+    let isOnMarket;
     if(p.isPortfolio){
         toMap = portfolio;
     }
@@ -36,11 +37,14 @@ const StockGroup = (p) => {
     >
         {toMap.map((v) => {
                 let count = portfolio.find(o => o.ticker === v.ticker);
+                let w = stocksMarket.find(o => o.ticker === v.ticker);
+                isOnMarket = !!w;
                 if(typeof(count) !== 'undefined') count = count.count;
                 else count = 0;
+
                 return (
                     <StockCard
-                        key={v.price+v.ticker}
+                        key={v.price+v.ticker+stocksMarket+portfolio}
                         avgPrice={p.isPortfolio ? v.avgPrice : v.priceBefore}
                         count={count}
                         price={v.price}
@@ -49,6 +53,7 @@ const StockGroup = (p) => {
                         setActiveModal={p.setActiveModal}
                         sign={'$'}
                         measure={'шт.'}
+                        isOnMarket={isOnMarket}
                     />
                 )
             })

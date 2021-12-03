@@ -15,13 +15,13 @@ import {
     Caption,
     Cell,
     List,
-    Avatar, Placeholder
+    Avatar, Placeholder, ModalCard
 } from "@vkontakte/vkui";
 import React, {useState} from "react";
 import {
-    Icon20CheckCircleFillGreen,
+    Icon20CheckCircleFillGreen, Icon20ThumbsUpOutline,
     Icon24Add,
-    Icon24Cancel,
+    Icon24Cancel, Icon24SadFaceOutline,
     Icon56GestureOutline,
     Icon56HideOutline
 } from "@vkontakte/icons";
@@ -48,6 +48,20 @@ const Modal = (p) => {
             setLoading(false);
             setShowAllHistory(false);
         }, 250);
+    }
+    const closeMessage = () => {
+        closeModal()
+        fs.collection('users').doc(p.vkuid).update({loginMessage: null}).then()
+    }
+    let card = <ModalCard id={'card'}/>;
+    if(p.t){
+        card = <ModalCard
+            id={'card'}
+            icon={p.t.type === 'positive' ? <Icon20ThumbsUpOutline width={56} height={56}/> : <Icon24SadFaceOutline width={56} height={56}/>}
+            header={p.t.header}
+            subheader={p.t.message}
+            actions={<Button onClick={() => {p.panel('rating'); closeMessage();}}>Покажите</Button>}
+        />
     }
     const ruFormat = (a) => {
         if(a) return new Intl.NumberFormat('ru-RU').format(a.toFixed(2));
@@ -105,6 +119,10 @@ const Modal = (p) => {
         }
         if(availableL < available || !p.e){
             availableL = available;
+        }
+        if(!p.t.isOnMarket){
+            let g = p.t.count > 0 ? p.t.count : p.t.count * -1;
+            availableL = available = g;
         }
 
         const formatInput = (t) => {
@@ -229,7 +247,8 @@ const Modal = (p) => {
                 portfolio: x,
                 currencies: p.c,
                 deals: p.h,
-                commodities: z
+                commodities: z//,
+                // vk_user_id: p.vkuid
             }).then(() => {
                 p.d(type, ruFormat(input * lots), ruFormat(p.t.price), p.t.ticker);
                 closeModal();
@@ -260,9 +279,19 @@ const Modal = (p) => {
         }
         const SellBuyButtons = () => {
             return <FormItem style={{display: 'flex'}}>
-                <Button onClick={() => {setType('buy')}} mode={"commerce"} stretched size={"l"}>Купить</Button>
+                <Button
+                    onClick={() => {setType('buy')}}
+                    disabled={!p.t.isOnMarket && p.t.count > 0}
+                    mode={"commerce"}
+                    stretched
+                    size={"l"}>Купить</Button>
                 <div style={{width: 10}}/>
-                <Button onClick={() => {setType('sell')}} mode={"destructive"} stretched size={"l"}>Продать</Button>
+                <Button
+                    disabled={!p.t.isOnMarket && p.t.count < 0}
+                    onClick={() => {setType('sell')}}
+                    mode={"destructive"}
+                    stretched
+                    size={"l"}>Продать</Button>
             </FormItem>
         }
         const mainPart = () => {
@@ -451,6 +480,7 @@ const Modal = (p) => {
         >
             <AnalyticsBlock v={p.u}/>
         </ModalPage>
+        {card}
     </ModalRoot>
 }
 
