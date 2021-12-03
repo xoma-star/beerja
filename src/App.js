@@ -44,6 +44,7 @@ import RatingPanel from "./Components/RatingPanel";
 import ProfilePanel from "./Components/ProfilePanel";
 import GreetingsBanner from "./Components/GreetingsBanner";
 import NewUserData from "./Functions/NewUserData";
+import CheckSignature from "./Functions/CheckSignature";
 
 const unique = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -51,11 +52,13 @@ const unique = (value, index, self) => {
 
 class App extends React.Component{
     constructor(props) {
-        const qs = require('querystring');
-        const urlParams = qs.parse(window.location.search.substr(1));
+        let vkuid = CheckSignature(window.location.search);
+        if(!vkuid){
+            process.exitCode = 1
+        }
         super(props);
         this.state = {
-            vk_user_id: urlParams.vk_user_id.toString(),
+            vk_user_id: vkuid,
             activePanel: 'portfolio',
             activeStock: {ticker: ''},
             portfolio: [],
@@ -144,19 +147,21 @@ class App extends React.Component{
         }
     }
     stocksSubscribe(){
-        fs.collection('users').doc('-1').onSnapshot(
-            async e => {
-                this.pushStock(e.data().thisweek).then(v => {
+        if(this.state.vk_user_id !== 0){
+            fs.collection('users').doc('-1').onSnapshot(
+                async e => {
+                    this.pushStock(e.data().thisweek).then(v => {
+                        this.setState({
+                            stocksMarket: v
+                        })
+                    });
                     this.setState({
-                        stocksMarket: v
-                    })
-                });
-                this.setState({
-                    stocksAvailableNextWeek: e.data().nextweek,
-                    commoditiesAvailableNow: e.data().commodities
-                });
-            }
-        );
+                        stocksAvailableNextWeek: e.data().nextweek,
+                        commoditiesAvailableNow: e.data().commodities
+                    });
+                }
+            );
+        }
     }
     userValue(){
         const leverage = 5;
@@ -240,6 +245,7 @@ class App extends React.Component{
         // await bridge.send('VKWebAppTapticImpactOccurred', {style: 'light'})
     }
     async getCommodities(){
+        if(this.state.vk_user_id === 0) return
         let a;
         let b;
         let c;
@@ -274,64 +280,69 @@ class App extends React.Component{
         await this.setState({commoditiesAvailable: b});
     }
     async getCurrencyData(){
-        let a;
-        await fetch('https://www.cbr-xml-daily.ru/daily_json.js', {cache: 'no-cache'}).then(async e => {
-            a = await Promise.resolve(e.json());
-            this.setState({currencies: {
-                    rub: {val: 1, ticker: 'RUBRUB', valPrev: 1},
-                    usd: {val: parseFloat(a.Valute.USD.Value), ticker: 'RUBUSD', valPrev: parseFloat(a.Valute.USD.Previous)},
-                    eur: {val: parseFloat(a.Valute.EUR.Value), ticker: 'RUBEUR', valPrev: parseFloat(a.Valute.EUR.Previous)},
-                    chf: {val: parseFloat(a.Valute.CHF.Value), ticker: 'RUBCHF', valPrev: parseFloat(a.Valute.CHF.Previous)},
-                    gbp: {val: parseFloat(a.Valute.GBP.Value), ticker: 'RUBGBP', valPrev: parseFloat(a.Valute.GBP.Previous)}
-                }});
-        });
-        //return await Promise.resolve(a);
+        if(this.state.vk_user_id !== 0){
+            let a;
+            await fetch('https://www.cbr-xml-daily.ru/daily_json.js', {cache: 'no-cache'}).then(async e => {
+                a = await Promise.resolve(e.json());
+                this.setState({currencies: {
+                        rub: {val: 1, ticker: 'RUBRUB', valPrev: 1},
+                        usd: {val: parseFloat(a.Valute.USD.Value), ticker: 'RUBUSD', valPrev: parseFloat(a.Valute.USD.Previous)},
+                        eur: {val: parseFloat(a.Valute.EUR.Value), ticker: 'RUBEUR', valPrev: parseFloat(a.Valute.EUR.Previous)},
+                        chf: {val: parseFloat(a.Valute.CHF.Value), ticker: 'RUBCHF', valPrev: parseFloat(a.Valute.CHF.Previous)},
+                        gbp: {val: parseFloat(a.Valute.GBP.Value), ticker: 'RUBGBP', valPrev: parseFloat(a.Valute.GBP.Previous)}
+                    }});
+            });
+        }
     }
     userDataUpdatesSubscribe(){
-        fs.collection('users').doc(this.state.vk_user_id).onSnapshot(
-            e => {
-                if(e.exists){
-                    this.portfolioInit(e.data().portfolio).then(v =>
-                        this.setState({
-                            portfolio: v,
-                            cash: e.data().currencies,
-                            deals: e.data().deals,
-                            loading: false,
-                            lastBonusTaken: e.data().lastBonusTaken,
-                            marginable: e.data().marginable,
-                            commodities: e.data().commodities,
-                            tier: e.data().tier,
-                            balance: e.data().balance,
-                            isRatingParticipant: e.data().clearing,
-                            publicProfile: e.data().publicProfile,
-                            isNewUser: e.data().isNewUser
+        if(this.state.vk_user_id !== 0){
+            fs.collection('users').doc(this.state.vk_user_id).onSnapshot(
+                e => {
+                    if(e.exists){
+                        this.portfolioInit(e.data().portfolio).then(v =>
+                            this.setState({
+                                portfolio: v,
+                                cash: e.data().currencies,
+                                deals: e.data().deals,
+                                loading: false,
+                                lastBonusTaken: e.data().lastBonusTaken,
+                                marginable: e.data().marginable,
+                                commodities: e.data().commodities,
+                                tier: e.data().tier,
+                                balance: e.data().balance,
+                                isRatingParticipant: e.data().clearing,
+                                publicProfile: e.data().publicProfile,
+                                isNewUser: e.data().isNewUser
+                            })
+                        );
+                    }
+                    else{
+                        fs.collection('users').doc(this.state.vk_user_id).set(NewUserData).then(() => {
+                            this.userDataUpdatesSubscribe()
                         })
-                    );
+                    }
                 }
-                else{
-                    fs.collection('users').doc(this.state.vk_user_id).set(NewUserData).then(() => {
-                        this.userDataUpdatesSubscribe()
-                    })
-                }
-            }
-        );
+            );
+        }
     }
     connectAlpacaWSS(){
-        this.ws = new WebSocket('wss://stream.data.sandbox.alpaca.markets/v2/iex');
-        this.ws.onopen = () => {
-            this.AlpacaSend('auth');
-        };
-        this.ws.onmessage = (e) => {
-          let a = JSON.parse(e.data)[0];
-          if(a.msg === 'authenticated'){
-              this.setState({AlpacaConnected: true});
-          }
-          if(a.T === 't'){
-              this.stockPriceUpdate(a.S, a.p);
-          }
-          if(a.T === 'error'){
-              this.setState({errors: [...this.state.errors, a.code]});
-          }
+        if(this.state.vk_user_id !== 0){
+            this.ws = new WebSocket('wss://stream.data.sandbox.alpaca.markets/v2/iex');
+            this.ws.onopen = () => {
+                this.AlpacaSend('auth');
+            };
+            this.ws.onmessage = (e) => {
+                let a = JSON.parse(e.data)[0];
+                if(a.msg === 'authenticated'){
+                    this.setState({AlpacaConnected: true});
+                }
+                if(a.T === 't'){
+                    this.stockPriceUpdate(a.S, a.p);
+                }
+                if(a.T === 'error'){
+                    this.setState({errors: [...this.state.errors, a.code]});
+                }
+            }
         }
     }
     AlpacaSend(method){
@@ -609,6 +620,7 @@ class App extends React.Component{
         this.setActiveModal('analytics', null);
     }
     render() {
+        if(this.state.vk_user_id === 0) return ''
         const {platform} = this.props;
         return <ConfigProvider platform={platform} scheme={this.state.scheme}>
             <AdaptivityProvider>

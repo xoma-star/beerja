@@ -133,20 +133,20 @@ const Modal = (p) => {
                 y.rub.count += lots * input * (a * p.t.price - commission * p.t.price);
                 switch (p.t.ticker) {
                     case 'RUBCHF':
-                        y.chf.count += lots * a * - 1 * input;
                         y.chf.avgPrice = (p.c.chf.avgPrice * Math.abs(p.c.chf.count) + lots * input * p.t.price) / (Math.abs(p.c.chf.count) + lots * input);
+                        y.chf.count += lots * a * - 1 * input;
                         break;
                     case 'RUBEUR':
-                        y.eur.count += lots * a * - 1 * input;
                         y.eur.avgPrice = (p.c.eur.avgPrice * Math.abs(p.c.eur.count) + lots * input * p.t.price) / (Math.abs(p.c.eur.count) + lots * input);
+                        y.eur.count += lots * a * - 1 * input;
                         break;
                     case 'RUBUSD':
-                        y.usd.count += lots * a * - 1 * input;
                         y.usd.avgPrice = (p.c.usd.avgPrice * Math.abs(p.c.usd.count) + lots * input * p.t.price) / (Math.abs(p.c.usd.count) + lots * input);
+                        y.usd.count += lots * a * - 1 * input;
                         break;
                     case 'RUBGBP':
-                        y.gbp.count += lots * a * - 1 * input;
                         y.gbp.avgPrice = (p.c.gbp.avgPrice * Math.abs(p.c.gbp.count) + lots * input * p.t.price) / (Math.abs(p.c.gbp.count) + lots * input);
+                        y.gbp.count += lots * a * - 1 * input;
                         break;
                     default:
                         return

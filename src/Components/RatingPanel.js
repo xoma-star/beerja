@@ -11,6 +11,7 @@ import {
 import fs from "../Functions/Firebase";
 import bridge from "@vkontakte/vk-bridge";
 import {Icon28Ghost} from "@vkontakte/icons";
+import './stylesheets/RatingBubbles.css'
 
 class RatingPanel extends React.Component {
     constructor(props) {
@@ -97,26 +98,25 @@ class RatingPanel extends React.Component {
             return <Spinner/>
         }
         return <CardGrid style={{marginTop: 12}} size={"l"}>
-            <Card style={{paddingTop: 20, paddingBottom: 20}}>
+            <Card style={{paddingTop: 10, paddingBottom: 10}}>
+                <Title style={{textAlign: 'left', marginBottom: 8, marginLeft: 24}} weight={'bold'} level={1}>{a.name} разряд</Title>
                 <CardScroll>
                     {this.tiers.map(v =>
                     {
-                        let style = {background: v.color};
+                        let style = {};
                         let isActive = this.props.tier === v.id;
-                        if(isActive) style.transform = 'scale(1.1)'
-                        return <HorizontalCell onClick={() => {this.setState({activeTier: v.id})}} key={v.id}>
-                            <Avatar style={style}/>
+                        return <HorizontalCell style={{marginTop: 4}} onClick={() => {this.setState({activeTier: v.id})}} key={v.id}>
+                            <Avatar style={style} className={'ratingBubble ' + v.id + (isActive ? ' active' : '')}/>
                         </HorizontalCell>
                     })}
                 </CardScroll>
-                <Title style={{textAlign: 'center'}} weight={'bold'} level={1}>{a.name} разряд</Title>
                 {this.state.activeTier !== this.props.tier ? <Title
                     weight={'regular'}
                     level={3}
-                    style={{textAlign: 'center', marginTop: 8}}
+                    style={{textAlign: 'center'}}
                 >Просматривается: {b.name}</Title> : ''}
             </Card>
-            <Card style={{paddingTop: 10, paddingBottom: 10, marginBottom: 10}}>
+            <Card style={{paddingTop: 10, paddingBottom: 10}}>
                 <List>
                     {this.state.rates[this.state.activeTier] ?
                         (this.state.rates[this.state.activeTier].length > 0 ?
@@ -180,6 +180,14 @@ class RatingPanel extends React.Component {
                     ) : <Spinner/>
                     }
                 </List>
+            </Card>
+            <Card style={{paddingTop: 20, paddingBottom: 20, color: 'var(--header_text_secondary)', marginBottom: 10}}>
+                <Caption weight={'regular'} level={2} style={{textAlign: 'center'}}>
+                    Списки обновляются каждое воскресенье.
+                </Caption>
+                <Caption weight={'regular'} level={2} style={{textAlign: 'center'}}>
+                    5 лучших переходят в разряд выше, 5 худших - ниже
+                </Caption>
             </Card>
         </CardGrid>
     }

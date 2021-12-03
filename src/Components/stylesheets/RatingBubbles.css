@@ -1,0 +1,130 @@
+.ratingBubble{
+    transform: scale(1);
+}
+.ratingBubble.bronze{
+    background: linear-gradient(45deg, #d1913c, #ffd194);
+    box-shadow: 0 0 0 0 #000;
+}
+.ratingBubble.silver{
+    background: linear-gradient(225deg, #bdc3c7, #2c3e50);
+    box-shadow: 0 0 0 0 #000;
+}
+.ratingBubble.gold{
+    background: linear-gradient(225deg, #fceabb, #f8b500);
+    box-shadow: 0 0 0 0 #000;
+}
+.ratingBubble.sapphire{
+    background: linear-gradient(225deg, #0575e6, #021b79);
+    box-shadow: 0 0 0 0 #000;
+}
+.ratingBubble.ruby{
+    background: linear-gradient(225deg, #bc4e9c, #f80759);
+    box-shadow: 0 0 0 0 #000;
+}
+.ratingBubble.amethyst{
+    background: linear-gradient(45deg, #a770ef, #cf8bf3, #fdb99b);
+    box-shadow: 0 0 0 0 #000;
+}
+.ratingBubble.bronze.active{
+    animation: pulseBronze 5s infinite;
+}
+.ratingBubble.silver.active{
+    animation: pulseSilver 5s infinite;
+}
+.ratingBubble.gold.active{
+    animation: pulseGold 5s infinite;
+}
+.ratingBubble.sapphire.active{
+    animation: pulseSapphire 5s infinite;
+}
+.ratingBubble.ruby.active{
+    animation: pulseRuby 5s infinite;
+}
+.ratingBubble.amethyst.active{
+    animation: pulseAmethyst 5s infinite;
+}
+
+@keyframes pulseBronze {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 #d1913c80;
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+@keyframes pulseSilver {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 #2c3e5080;
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+@keyframes pulseGold {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 #f8b50080;
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+@keyframes pulseSapphire {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 #021b7980;
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+@keyframes pulseRuby {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 #f8075980;
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+@keyframes pulseAmethyst {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 #a770ef80;
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
