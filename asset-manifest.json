@@ -1,19 +1,19 @@
 {
   "files": {
     "main.css": "/beerja/static/css/main.599ae612.chunk.css",
-    "main.js": "/beerja/static/js/main.084bca94.chunk.js",
-    "main.js.map": "/beerja/static/js/main.084bca94.chunk.js.map",
-    "runtime-main.js": "/beerja/static/js/runtime-main.a25a5d5d.js",
-    "runtime-main.js.map": "/beerja/static/js/runtime-main.a25a5d5d.js.map",
+    "main.js": "/beerja/static/js/main.73ec91b2.chunk.js",
+    "main.js.map": "/beerja/static/js/main.73ec91b2.chunk.js.map",
+    "runtime-main.js": "/beerja/static/js/runtime-main.bf1d2440.js",
+    "runtime-main.js.map": "/beerja/static/js/runtime-main.bf1d2440.js.map",
     "static/css/2.28389d10.chunk.css": "/beerja/static/css/2.28389d10.chunk.css",
-    "static/js/2.5ad861a0.chunk.js": "/beerja/static/js/2.5ad861a0.chunk.js",
-    "static/js/2.5ad861a0.chunk.js.map": "/beerja/static/js/2.5ad861a0.chunk.js.map",
-    "static/js/3.1318e1b7.chunk.js": "/beerja/static/js/3.1318e1b7.chunk.js",
-    "static/js/3.1318e1b7.chunk.js.map": "/beerja/static/js/3.1318e1b7.chunk.js.map",
+    "static/js/2.b37b0a5c.chunk.js": "/beerja/static/js/2.b37b0a5c.chunk.js",
+    "static/js/2.b37b0a5c.chunk.js.map": "/beerja/static/js/2.b37b0a5c.chunk.js.map",
+    "static/js/3.e7f8cbd3.chunk.js": "/beerja/static/js/3.e7f8cbd3.chunk.js",
+    "static/js/3.e7f8cbd3.chunk.js.map": "/beerja/static/js/3.e7f8cbd3.chunk.js.map",
     "index.html": "/beerja/index.html",
     "static/css/2.28389d10.chunk.css.map": "/beerja/static/css/2.28389d10.chunk.css.map",
     "static/css/main.599ae612.chunk.css.map": "/beerja/static/css/main.599ae612.chunk.css.map",
-    "static/js/2.5ad861a0.chunk.js.LICENSE.txt": "/beerja/static/js/2.5ad861a0.chunk.js.LICENSE.txt",
+    "static/js/2.b37b0a5c.chunk.js.LICENSE.txt": "/beerja/static/js/2.b37b0a5c.chunk.js.LICENSE.txt",
     "static/media/CH.svg": "/beerja/static/media/CH.8eb12932.svg",
     "static/media/EU.svg": "/beerja/static/media/EU.cc1cffe9.svg",
     "static/media/GB.svg": "/beerja/static/media/GB.3de1330d.svg",
@@ -202,10 +202,10 @@
     "static/media/zscaler--big.svg": "/beerja/static/media/zscaler--big.273b3f05.svg"
   },
   "entrypoints": [
-    "static/js/runtime-main.a25a5d5d.js",
+    "static/js/runtime-main.bf1d2440.js",
     "static/css/2.28389d10.chunk.css",
-    "static/js/2.5ad861a0.chunk.js",
+    "static/js/2.b37b0a5c.chunk.js",
     "static/css/main.599ae612.chunk.css",
-    "static/js/main.084bca94.chunk.js"
+    "static/js/main.73ec91b2.chunk.js"
   ]
 }
