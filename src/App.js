@@ -26,7 +26,7 @@ import {
     Icon24SartOutline, Icon24UserOutline,
     Icon24WorkOutline,
 } from '@vkontakte/icons';
-import BalanceCards from "./Components/BalanceCards";
+import BalanceCards from "./Components/Groups/BalanceCards";
 import fs from "./Functions/Firebase.js";
 import StocksData from "./Functions/StocksData";
 import Modal from "./Components/Modal";
@@ -34,7 +34,7 @@ import StockCardHorizontal from "./Components/StockCardHorizontal";
 import bridge from "@vkontakte/vk-bridge";
 import CurrenciesGroup from "./Components/CurrenciesGroup";
 import OperationCards from "./Components/OperationCards";
-import MarginCards from "./Components/MarginCards";
+import MarginCards from "./Components/Blocks/MarginCards.tsx";
 import CommoditiesGroup from "./Components/CommoditiesGroup";
 import ErrorBlock from "./Components/ErrorBlock";
 import StockGroup from "./Components/StockGroup";
@@ -42,9 +42,10 @@ import MarketBlock from "./Components/MarketBlock";
 import MarketSections from "./Functions/MarketSections";
 import RatingPanel from "./Components/RatingPanel";
 import ProfilePanel from "./Components/ProfilePanel";
-import GreetingsBanner from "./Components/GreetingsBanner";
+import GreetingsBanner from "./Components/Banners/GreetingsBanner.tsx";
 import NewUserData from "./Functions/NewUserData";
 import CheckSignature from "./Functions/CheckSignature";
+import ErrorSnackbar from "./Components/SnackBars/ErrorSnackbar";
 
 const unique = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -106,6 +107,7 @@ class App extends React.Component{
         this.refresh = this.refresh.bind(this);
         this.openAnal = this.openAnal.bind(this);
         this.setActiveView = this.setActiveView.bind(this);
+        this.updateSnack = this.updateSnack.bind(this);
     }
     async componentDidMount() {
         await this.connectAlpacaWSS();
@@ -117,7 +119,7 @@ class App extends React.Component{
             }
         });
         bridge.send('VKWebAppInit').then(() =>{
-            bridge.send("VKWebAppGetAuthToken", {"app_id": 8000440, "scope": "friends,status"}).then(
+            bridge.send("VKWebAppGetAuthToken", {"app_id": 8000440, "scope": ""}).then(
                 v => {
                     this.setState({access_token: v.access_token})
                 }
@@ -595,16 +597,12 @@ class App extends React.Component{
                 </Snackbar>
         });
     }
+    updateSnack(val){
+        this.setState({snackBar: val})
+    }
     changeMarginStatus(){
         if(this.userValue().rubValueNaked > 0){
-            this.setState({
-                snackBar: <Snackbar
-                    onClose={() => this.setState({snackBar: null})}
-                    before={<Icon16ErrorCircleFill width={24} height={24} />}
-                >
-                    Сначала закройте непокрытые позиции
-                </Snackbar>
-            })
+            this.updateSnack(<ErrorSnackbar close={() => this.updateSnack(null)} text="Сначала закройте непокрытые позиции"/>)
             return
         }
         fs.collection('users').doc(this.state.vk_user_id).update({
@@ -692,16 +690,13 @@ class App extends React.Component{
                                 <Panel id={"portfolio"}>
                                     <PullToRefresh onRefresh={this.refresh} isFetching={this.state.fetching}>
                                         <BalanceCards
-                                            exchangeRates={this.state.currencies}
-                                            portfolio={this.state.portfolio}
-                                            cash={this.state.cash}
                                             userValue={this.userValue()}
                                         />
                                         <ErrorBlock e={this.state.errors}/>
                                         <MarginCards
-                                            u={this.userValue()}
-                                            m={this.changeMarginStatus}
-                                            e={this.state.marginable}
+                                            userValue={this.userValue()}
+                                            margeStatus={this.state.marginable}
+                                            updateStatus={this.changeMarginStatus}
                                         />
                                         <OperationCards
                                             od={this.openDeals}
@@ -766,7 +761,7 @@ class App extends React.Component{
                                             <CardScroll>
                                                 {
                                                     this.state.stocksAvailableNextWeek.map((v,i) => {
-                                                        return <StockCardHorizontal key={'horizontalcard'+i} v={v}/>
+                                                        return <StockCardHorizontal key={'horizontal'+i} v={v}/>
                                                     })
                                                 }
                                             </CardScroll>

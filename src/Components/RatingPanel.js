@@ -24,7 +24,7 @@ class RatingPanel extends React.Component {
                 color: 'linear-gradient(45deg, #d1913c, #ffd194)'
             },
             {
-                name: 'Серебрянный',
+                name: 'Серебряный',
                 id: 'silver',
                 color: 'linear-gradient(225deg, #bdc3c7, #2c3e50)'
             },
@@ -187,6 +187,9 @@ class RatingPanel extends React.Component {
                 </Caption>
                 <Caption weight={'regular'} level={2} style={{textAlign: 'center'}}>
                     5 лучших переходят в разряд выше, 5 худших - ниже
+                </Caption>
+                <Caption weight={'regular'} level={2} style={{textAlign: 'center'}}>
+                    Чем выше разряд - тем выше награды
                 </Caption>
             </Card>
         </CardGrid>

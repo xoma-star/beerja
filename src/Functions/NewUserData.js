@@ -31,7 +31,8 @@ const NewUserData = {
     portfolio: [],
     publicProfile: true,
     tier: 'bronze',
-    isNewUser: true
+    isNewUser: true,
+    loginMessage: null
 }
 
 export default NewUserData

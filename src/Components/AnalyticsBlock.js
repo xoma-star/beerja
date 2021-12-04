@@ -1,11 +1,8 @@
 import {Avatar, Headline, Cell, Group, Progress} from "@vkontakte/vkui";
 import React from "react";
+import RuFormat from "../Functions/RuFormat";
 
 const AnalyticsBlock = (p) => {
-    const ruFormat = (a) => {
-        if(a) return new Intl.NumberFormat('ru-RU').format(a.toFixed(2));
-        return 0
-    }
     let total = p.v.values.stocks + p.v.values.currencies + p.v.values.commodities;
     let s = {
         cur: {
@@ -43,7 +40,7 @@ const AnalyticsBlock = (p) => {
                 key={k+'ded'}
                 style={{minHeight: 0, height: 24}}
                 before={<Avatar style={{background: s[k].color}} size={12}/>}
-                after={ruFormat(s[k].abs) + ' ₽'}
+                after={RuFormat(s[k].abs) + ' ₽'}
             >
                 <Headline weight={'regular'} level={1}>{s[k].description}</Headline>
             </Cell>
@@ -52,7 +49,7 @@ const AnalyticsBlock = (p) => {
             disabled
             style={{minHeight: 0, height: 24}}
             before={<Avatar style={{background: 'var(--dynamic_red)'}} size={12}/>}
-            after={ruFormat(total) + ' ₽'}
+            after={RuFormat(total) + ' ₽'}
         >
             <Headline weight={'semibold'} level={1}>Всего</Headline>
         </Cell>

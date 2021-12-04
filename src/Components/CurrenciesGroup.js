@@ -28,6 +28,7 @@ const CurrenciesGroup = (p) => {
                     sign={'₽'}
                     measure={s[k]}
                     key={p.rates[k].val+k}
+                    isOnMarket={true}
                 />
             }
             return '';
