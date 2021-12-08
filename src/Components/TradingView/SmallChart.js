@@ -23,7 +23,7 @@ class SmallChart extends React.Component {
                 return ticker
         }
     }
-    updateTF(TF){
+    updateTF(){
         this.script = document.createElement('script');
         // this.script.addEventListener('load', () => setTimeout(() => this.setState({loading: false}), 0));
         // this.script.src = 'https://s3.tradingview.com/tv.js'
@@ -83,7 +83,7 @@ class SmallChart extends React.Component {
                 "width": '100%',
                 "height": 220,
                 "locale": "ru",
-                "dateRange": "12M",
+                "dateRange": "3M",
                 "colorTheme": this.props.scheme === 'bright_light' ? "light" : 'dark',
                 "trendLineColor": "rgba(41, 98, 255, 1)",
                 "underLineColor": "rgba(41, 98, 255, 0.3)",

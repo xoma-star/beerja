@@ -30,22 +30,23 @@ import BalanceCards from "./Components/Groups/BalanceCards";
 import fs from "./Functions/Firebase.js";
 import StocksData from "./Functions/StocksData";
 import Modal from "./Components/Modal";
-import StockCardHorizontal from "./Components/StockCardHorizontal";
+import StockCardHorizontal from "./Components/Blocks/StockCardHorizontal";
 import bridge from "@vkontakte/vk-bridge";
-import CurrenciesGroup from "./Components/CurrenciesGroup";
-import OperationCards from "./Components/OperationCards";
+import CurrenciesGroup from "./Components/Groups/CurrenciesGroup";
+import OperationCards from "./Components/Blocks/OperationCards";
 import MarginCards from "./Components/Blocks/MarginCards.tsx";
-import CommoditiesGroup from "./Components/CommoditiesGroup";
+import CommoditiesGroup from "./Components/Groups/CommoditiesGroup";
 import ErrorBlock from "./Components/ErrorBlock";
-import StockGroup from "./Components/StockGroup";
-import MarketBlock from "./Components/MarketBlock";
+import StockGroup from "./Components/Groups/StockGroup";
+import MarketBlock from "./Components/Blocks/MarketBlock";
 import MarketSections from "./Functions/MarketSections";
-import RatingPanel from "./Components/RatingPanel";
-import ProfilePanel from "./Components/ProfilePanel";
+import RatingPanel from "./Components/Panels/RatingPanel";
+import ProfilePanel from "./Components/Panels/ProfilePanel";
 import GreetingsBanner from "./Components/Banners/GreetingsBanner.tsx";
 import NewUserData from "./Functions/NewUserData";
 import CheckSignature from "./Functions/CheckSignature";
 import ErrorSnackbar from "./Components/SnackBars/ErrorSnackbar";
+import QuestionsPanel from "./Components/Panels/QuestionsPanel";
 
 const unique = (value, index, self) => {
     return self.indexOf(value) === index;
@@ -88,7 +89,8 @@ class App extends React.Component{
             isRatingParticipant: true,
             observerProfile: 0,
             activeView: 'main',
-            isNewUser: false
+            isNewUser: false,
+            lastValue: 0
         }
         this.api_key = 'CKB1ZOZN09CF26RO6LPJ';
         this.api_secret = 'cBuWsqBlsuB5aAf8c0qqHrL9jy5SWqX3kY9e6Qao';
@@ -116,6 +118,9 @@ class App extends React.Component{
                 this.setState({
                     scheme: e.detail.data.scheme
                 });
+            }
+            if(e.detail.type === 'VKWebAppViewRestore'){
+                window.location.reload();
             }
         });
         bridge.send('VKWebAppInit').then(() =>{
@@ -171,7 +176,7 @@ class App extends React.Component{
         const dailyCommission = 0.0004;
         let dailyCharge = 0;
         let c = this.state.currencies;
-        if(!c.chf){
+        if(!c.chf || Object.keys(this.state.commoditiesAvailable).length < 1){
             return {}
         }
         let CHFUSD = c.chf.val / c.usd.val;
@@ -202,11 +207,11 @@ class App extends React.Component{
                 currenciesVal += v.count * rates[k];
             }
         }
-        for (const [, v] of Object.entries(this.state.commodities)) {
-            usdValue += v.count * v.avgPrice;
+        for (const [k, v] of Object.entries(this.state.commodities)) {
+            usdValue += v.count / this.state.commoditiesAvailable.rates[k];
             if(v.count > 0) {
-                usdAbs += Math.abs(v.count * v.avgPrice);
-                commoditiesVal += v.count * v.avgPrice;
+                usdAbs += Math.abs(v.count * this.state.commoditiesAvailable.rates[k]);
+                commoditiesVal += v.count * this.state.commoditiesAvailable.rates[k];
             }
         }
         let eurValue = usdValue / EURUSD;
@@ -241,7 +246,17 @@ class App extends React.Component{
                 currencies: currenciesVal / RUBUSD,
                 commodities: commoditiesVal / RUBUSD
             },
-            dailyCharge: dailyCharge
+            dailyCharge: dailyCharge,
+            lastValue: {
+                rub: this.state.lastValue,
+                usd: this.state.lastValue * RUBUSD,
+                eur: this.state.lastValue * RUBUSD / EURUSD
+            },
+            weekStartValue:{
+                rub: this.state.balance,
+                usd: this.state.balance * RUBUSD,
+                eur: this.state.balance * RUBUSD / EURUSD
+            }
         }
     }
     async tapticSend(){
@@ -249,38 +264,14 @@ class App extends React.Component{
     }
     async getCommodities(){
         if(this.state.vk_user_id === 0) return
-        let a;
         let b;
-        let c;
-        await fs.collection('users').doc('-2').get().then(async e => {
-            if(new Date().getTime() - e.data().commodities.updated*1000 > 1000*8*60*60){
-                let symbols = 'COFFEE%2CWHEAT%2CSUGAR%2CCORN%2CSOYBEAN%2CRICE%2CALU%2CBRENTOIL%2CLCO%2CXCU%2CCOTTON%2CXAU%2CIRD%2CNI%2CXPD%2CXPT%2CXRH%2CXAG%2CTIN%2CWTIOIL%2CZNC';
-                let access_key = 'k75br6f333zn5t2d66yuw3hfe12i9n6dlnxheqqyvmrt73t9r52w5qtek973';
-                await fetch('https://commodities-api.com/api/latest?access_key='+access_key+'&base=USD&symbols='+symbols).then(async e => {
-                    a = await Promise.resolve(e.json());
-                });
-                let nd = new Date((a.data.timestamp - 24*60*60)*1000);
-                nd = nd.getFullYear()+'-'+(nd.getMonth()+1)+'-'+nd.getDate();
-                await fetch('https://commodities-api.com/api/'+nd+'?access_key='+access_key+'&base=USD&symbols='+symbols).then(async e => {
-                    c = await Promise.resolve(e.json());
-                });
-                b = {
-                    updated: await a.data.timestamp,
-                    rates: await a.data.rates,
-                    ratesBefore: await c.data.rates
-                }
-                await fs.collection('users').doc('-2').update({
-                    commodities: b
-                })
+        await fs.collection('users').doc('-2').get().then(e => {
+            b = {
+                rates: e.data().commodities.rates,
+                ratesBefore: e.data().commodities.ratesBefore
             }
-            else{
-                b = {
-                    rates: e.data().commodities.rates,
-                    ratesBefore: e.data().commodities.ratesBefore
-                }
-            }
+            this.setState({commoditiesAvailable: b});
         })
-        await this.setState({commoditiesAvailable: b});
     }
     async getCurrencyData(){
         if(this.state.vk_user_id !== 0){
@@ -315,7 +306,8 @@ class App extends React.Component{
                                 balance: e.data().balance,
                                 isRatingParticipant: e.data().clearing,
                                 publicProfile: e.data().publicProfile,
-                                isNewUser: e.data().isNewUser
+                                isNewUser: e.data().isNewUser,
+                                lastValue: e.data().lastValue
                             })
                         );
                         if(e.data().loginMessage){
@@ -565,7 +557,7 @@ class App extends React.Component{
                     'Authorization': 'Basic ' + window.btoa(this.api_key+':'+this.api_secret)
                 }
             }
-        ).catch(() => {}).then(
+        ).catch(() => {a = null;}).then(
              async e => {
                 a = await e.json();
             }
@@ -585,7 +577,7 @@ class App extends React.Component{
             a[v] = data[v]
         }
         this.tapticSend()
-        this.setState(a);
+        this.setState(a)
     }
     dealComplete(type, count, price, ticker){
         this.setState({snackBar:
@@ -674,8 +666,8 @@ class App extends React.Component{
                         />
                     }>
                         <Root activeView={this.state.activeView}>
-                            <View id={'profile'} activePanel={'profile'}>
-                                <Panel id={'profile'}>
+                            <View id="profile" activePanel="profileObserve">
+                                <Panel id={'profileObserve'}>
                                     <ProfilePanel
                                         back={() => this.setActiveView('main', {observerProfile: null})}
                                         token={this.state.access_token}
@@ -683,6 +675,14 @@ class App extends React.Component{
                                         isObserver={true}
                                         observerGain={this.state.observerGain}
                                         observerPlace={this.state.observerRating}
+                                    />
+                                </Panel>
+                            </View>
+                            <View id="questions" activePanel="questions">
+                                <Panel id="questions">
+                                    <QuestionsPanel
+                                        back={() => this.setActiveView('main', {})}
+                                        openModal={(v,f) => this.setActiveModal(v, f)}
                                     />
                                 </Panel>
                             </View>
@@ -708,6 +708,7 @@ class App extends React.Component{
                                         <GreetingsBanner
                                             show={this.state.isNewUser}
                                             vkuid={this.state.vk_user_id}
+                                            open={() => this.setActiveView('questions', {})}
                                         />
                                         <StockGroup
                                             isPortfolio={true}
@@ -757,7 +758,7 @@ class App extends React.Component{
                                             portfolio={this.state.commodities}
                                             p={false}
                                         />
-                                        <Group header={<Header mode={"secondary"}>на следующей неделе</Header>}>
+                                        <Group header={<Header mode={"secondary"}>завтра</Header>}>
                                             <CardScroll>
                                                 {
                                                     this.state.stocksAvailableNextWeek.map((v,i) => {
@@ -786,6 +787,8 @@ class App extends React.Component{
                                             publicProfile: this.state.publicProfile,
                                             isRatingParticipant: this.state.isRatingParticipant
                                         }}
+                                        updateView={v => this.setActiveView(v, {})}
+                                        updatePanel={v => this.setActivePanel(v)}
                                     />
                                     <div style={{height: 48}}/>
                                 </Panel>
@@ -794,7 +797,7 @@ class App extends React.Component{
                     </SplitLayout>
                     <FixedLayout>
                         {this.state.snackBar}
-                        <Epic style={this.state.activeView === 'profile' ? {display: 'none'} : {}} activeStory={this.state.activePanel} tabbar={
+                        <Epic style={this.state.activeView !== 'main' ? {display: 'none'} : {}} activeStory={this.state.activePanel} tabbar={
                             <Tabbar>
                                 <TabbarItem
                                     selected={this.state.activePanel === "portfolio"}
@@ -815,7 +818,7 @@ class App extends React.Component{
                                 <TabbarItem selected={this.state.activePanel === "rating"} id={"rating"} onClick={() => this.setActivePanel("rating")} text={"Рейтинг"}>
                                     <Icon24CupOutline/>
                                 </TabbarItem>
-                                <TabbarItem selected={this.state.activePanel === "profile"} id={"profile"} onClick={() => this.setActivePanel("profile")} text={"Профиль"}>
+                                <TabbarItem selected={this.state.activePanel === "profile"} id={"profile"} onClick={() => this.setActivePanel("profile")} text={"Еще"}>
                                     <Icon24UserOutline/>
                                 </TabbarItem>
                             </Tabbar>

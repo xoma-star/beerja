@@ -1,5 +1,5 @@
 import {Button, Group, Header, Placeholder, Spinner} from "@vkontakte/vkui";
-import StockCard from "./StockCard";
+import StockCard from "../StockCard";
 import {Icon56GestureOutline} from "@vkontakte/icons";
 import React from "react";
 

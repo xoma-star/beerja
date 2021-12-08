@@ -67,6 +67,7 @@ const StockCard = (p) => {
         </div>
     }
     return <Cell
+        multiline
         onClick={() => {
             p.setActiveModal('stock', {
                 ticker: ticker,

@@ -4,10 +4,11 @@ import fs from "../../Functions/Firebase";
 
 interface props {
     show: boolean,
-    vkuid: number
+    vkuid: number,
+    open: () => void
 }
 
-const GreetingsBanner = ({show, vkuid}: props) => {
+const GreetingsBanner = ({show, vkuid, open}: props) => {
     const gradient = {
         background: 'linear-gradient(45deg, #ff6e7f, #bfe9ff)'
     }
@@ -22,12 +23,12 @@ const GreetingsBanner = ({show, vkuid}: props) => {
             asideMode={'dismiss'}
             header={'Нужна помощь?'}
             before={<Avatar style={gradient} size={64}><Icon28HorseToyOutline fill={'#fff'} width={40} height={40}/></Avatar>}
-            subheader={'Получите ответ, задав вопрос в сообщениях сообщества'}
+            subheader={'Получите ответы на часто задаваемые вопросы'}
             actions={<Button
-                onClick={() => window.open('https://vk.me/public207277087', '_blank')}
+                onClick={open}
                 before={<Icon24ExternalLinkOutline/>}
             >
-                Написать</Button>}
+                Открыть</Button>}
         />
     }
     return ''

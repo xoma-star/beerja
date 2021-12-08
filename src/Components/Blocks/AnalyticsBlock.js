@@ -1,8 +1,9 @@
-import {Avatar, Headline, Cell, Group, Progress} from "@vkontakte/vkui";
+import {Avatar, Headline, Cell, Group, Progress, Spinner} from "@vkontakte/vkui";
 import React from "react";
-import RuFormat from "../Functions/RuFormat";
+import RuFormat from "../../Functions/RuFormat";
 
 const AnalyticsBlock = (p) => {
+    if(Object.keys(p.v).length < 1) return <Spinner/>
     let total = p.v.values.stocks + p.v.values.currencies + p.v.values.commodities;
     let s = {
         cur: {

@@ -1,8 +1,8 @@
 import React from 'react';
-import {Card, Spinner, Text, Title} from "@vkontakte/vkui";
+import {Caption, Card, Spinner, Text, Title} from "@vkontakte/vkui";
 import RuFormat from "../../Functions/RuFormat";
 
-const BalanceCard = ({currency, val}: {currency: string, val: number}) => {
+const BalanceCard = ({currency, val, color, delta}: {currency: string, val: number, color: object, delta: number}) => {
     const a = {
         rub: ['рублях', '₽'],
         usd: ['долларах', '$'],
@@ -10,8 +10,17 @@ const BalanceCard = ({currency, val}: {currency: string, val: number}) => {
     };
     let b;
     if(val){
-        // @ts-ignore
-        b = <Title level="1" weight="semibold">{RuFormat(val)} {a[currency][1]}</Title>
+        b = <div>
+            <Title level="1" weight="semibold">{RuFormat(val)} {
+                //@ts-ignore
+                a[currency][1]
+            }</Title>
+            <Caption style={{display: 'flex'}} weight="regular" level="1"><div
+                style={color}>
+                {//@ts-ignore
+                RuFormat(delta) + ' '+ a[currency][1]}</div><div style={{width: 4}}
+            /><div style={{color: 'var(--content_tint_foreground)'}}>за неделю</div></Caption>
+        </div>
     }
     else{
         b = <Spinner style={{height: 28}} size={'regular'}/>
@@ -20,7 +29,7 @@ const BalanceCard = ({currency, val}: {currency: string, val: number}) => {
         <div>
             <Text weight={"regular"}>в
                 {// @ts-ignore
-                    a[currency][0]
+                    ' ' + a[currency][0]
                 }
             </Text>
             {b}

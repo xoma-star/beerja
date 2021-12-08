@@ -23,12 +23,12 @@ const MarginCards = ({userValue, margeStatus, updateStatus}: props) => {
             <Card>
                 <List>
                     <Cell disabled after={<Switch checked={margeStatus} onChange={updateStatus}/>}>Торговля с плечом</Cell>
-                    <Cell disabled after={userValue.commission * 100 + '%'}>Коммиссия за сделки</Cell>
+                    <Cell style={{display: 'none'}} disabled after={userValue.commission * 100 + '%'}>Коммиссия за сделки</Cell>
                     <div style={!margeStatus ? {display: 'none'} : {}}>
                         <Cell disabled after={RuFormat(userValue.rubValueAvailable)+' ₽'}>Доступно средств</Cell>
                         <Cell disabled after={RuFormat(userValue.rubValueNaked)+' ₽'}>Непокрытые позиции</Cell>
-                        <Cell disabled after={RuFormat(userValue.dailyCharge)+' ₽'}>Обслуживание в сутки</Cell>
-                        <Cell disabled after={'1:'+userValue.leverage.toString()}>Кредитное плечо</Cell>
+                        <Cell style={{display: 'none'}} disabled after={RuFormat(userValue.dailyCharge)+' ₽'}>Обслуживание в сутки</Cell>
+                        <Cell style={{display: 'none'}} disabled after={'1:'+userValue.leverage.toString()}>Кредитное плечо</Cell>
                     </div>
                 </List>
             </Card>

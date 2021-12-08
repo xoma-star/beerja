@@ -1,5 +1,5 @@
 import React from 'react'
-import StockCard from "./StockCard";
+import StockCard from "../StockCard";
 import {Group, Header, Placeholder, Spinner} from "@vkontakte/vkui";
 import {Icon28GhostSimleOutline} from "@vkontakte/icons";
 

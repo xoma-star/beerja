@@ -1,6 +1,6 @@
 import React from 'react'
 import {Group, Header, Spinner} from "@vkontakte/vkui";
-import StockCard from "./StockCard";
+import StockCard from "../StockCard";
 
 const CurrenciesGroup = (p) => {
     if(p.cash.length === 0 || p.rates.length === 0){

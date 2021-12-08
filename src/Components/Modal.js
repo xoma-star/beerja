@@ -28,7 +28,7 @@ import {
 import fs from "../Functions/Firebase";
 import StocksData from "../Functions/StocksData";
 import SmallChart from "./TradingView/SmallChart";
-import AnalyticsBlock from "./AnalyticsBlock";
+import AnalyticsBlock from "./Blocks/AnalyticsBlock";
 
 const Modal = (p) => {
     const [type, setType] = useState(null);
@@ -223,8 +223,8 @@ const Modal = (p) => {
                         avgPrice: x[i].avgPrice,
                         count: x[i].count
                     }
-                    // delete x[i].price;
-                    // delete x[i].name;
+                    delete x[i].price;
+                    delete x[i].name;
                     if(x[i].count === 0){
                         x.splice(i, 1);
                     }
@@ -481,6 +481,15 @@ const Modal = (p) => {
             <AnalyticsBlock v={p.u}/>
         </ModalPage>
         {card}
+        <ModalPage
+            id={'questions'}
+            dynamicContentHeight
+            header={<ModalPageHeader left={<PanelHeaderBack onClick={closeModal}/>}><Header>Частые вопросы</Header></ModalPageHeader>}
+        >
+            <Group style={{paddingLeft: 14, paddingRight: 14}}>
+                {p.t ? p.t.text : ''}
+            </Group>
+        </ModalPage>
     </ModalRoot>
 }
 

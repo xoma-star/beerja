@@ -1,4 +1,5 @@
 import MarketHours from "./MarketHours";
+import HolidayList from "./HolidayList";
 
 const MarketSections = () => {
     let now = new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000 - 1000 * 5 * 60 * 60);
@@ -74,6 +75,16 @@ const MarketSections = () => {
     if(now.getDay() === 0 || now.getDay() === 6){
         dayOff = true;
     }
+    let x = HolidayList.find(v => {
+        let a = v.date.getFullYear()+' '+v.date.getMonth()+' '+v.date.getDate()
+        let b = now.getFullYear()+' '+now.getMonth()+' '+now.getDate()
+        return a === b;
+    });
+    let isDaySpecial = null;
+    if(x){
+        dayOff = true;
+        isDaySpecial = x.name;
+    }
     return {
         pre: pre,
         open: open,
@@ -82,7 +93,7 @@ const MarketSections = () => {
         now: nowSect,
         progress: values,
         isDayOff: dayOff,
-        isDaySpecial: false,
+        isDaySpecial: isDaySpecial,
         workingHours: {
             start: MarketHours.pre.open,
             end: MarketHours.post.close
