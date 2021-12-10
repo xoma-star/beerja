@@ -119,7 +119,7 @@ class App extends React.Component{
                     scheme: e.detail.data.scheme
                 });
             }
-            if(e.detail.type === 'VKWebAppViewRestore'){
+            if(e.detail.type === 'VKWebAppViewRestore' && (!this.state.snackBar || this.state.bonusLoading)){
                 window.location.reload();
             }
         });
@@ -210,8 +210,8 @@ class App extends React.Component{
         for (const [k, v] of Object.entries(this.state.commodities)) {
             usdValue += v.count / this.state.commoditiesAvailable.rates[k];
             if(v.count > 0) {
-                usdAbs += Math.abs(v.count * this.state.commoditiesAvailable.rates[k]);
-                commoditiesVal += v.count * this.state.commoditiesAvailable.rates[k];
+                usdAbs += Math.abs(v.count / this.state.commoditiesAvailable.rates[k]);
+                commoditiesVal += v.count / this.state.commoditiesAvailable.rates[k];
             }
         }
         let eurValue = usdValue / EURUSD;
